@@ -1,6 +1,6 @@
 import { defineConfig } from 'vitepress'
 
-const baseConfig = '/'
+const baseConfig = '/hello-claw/'
 
 export default defineConfig({
   base: baseConfig,
