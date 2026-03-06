@@ -165,9 +165,30 @@ openclaw dashboard
 
 ## 7. 常用命令
 
+### 基础命令
+
+```bash
+# 查看整体状态
+openclaw status
+
+# 深度健康检查
+openclaw status --deep
+
+# 系统诊断和修复
+openclaw doctor
+
+# 查看版本
+openclaw --version
+
+# 查看帮助
+openclaw --help
+```
+
+### Gateway 管理
+
 ```bash
 # 查看 Gateway 状态
-openclaw status
+openclaw gateway status
 
 # 启动 Gateway
 openclaw gateway start
@@ -175,23 +196,56 @@ openclaw gateway start
 # 停止 Gateway
 openclaw gateway stop
 
-# 重启 Gateway
+# 重启 Gateway（修改配置后必须执行）
 openclaw gateway restart
 
-# 打开 Web 控制面板
-openclaw dashboard
+# 前台运行并显示日志（调试用）
+openclaw gateway run --verbose
+```
 
-# 查看配置
-openclaw config get
+### 模型管理
 
-# 修改配置
-openclaw config set <key> <value>
+```bash
+# 列出可用模型
+openclaw models list
 
-# 查看日志
+# 查看模型状态
+openclaw models status
+
+# 设置默认模型
+openclaw models set <provider/model>
+
+# 检查 API 认证
+openclaw models auth
+```
+
+### 渠道管理
+
+```bash
+# 列出所有渠道
+openclaw channels list
+
+# 查看渠道连接状态
+openclaw channels status
+
+# 添加新渠道
+openclaw channels add
+
+# 登录渠道（如扫码登录 WhatsApp）
+openclaw channels login
+
+# 登出渠道
+openclaw channels logout
+```
+
+### 日志和调试
+
+```bash
+# 实时查看日志
+openclaw logs --follow
+
+# 查看最近日志
 openclaw logs
-
-# 查看版本
-openclaw --version
 ```
 
 ## 8. 常见问题
