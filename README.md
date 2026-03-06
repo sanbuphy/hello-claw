@@ -65,7 +65,7 @@ https://datawhalechina.github.io/hello-claw
 
 | 章节 | 简介 | 状态 |
 | ---- | ---- | ---- |
-| **写在开头** | **OpenClaw 是什么、为什么要学习它以及如何使用本教程** | 🚧 |
+| **写在开头** | **OpenClaw 是什么、为什么要学习它以及如何使用本教程** | ✅ |
 | **快速上手** | | |
 | 第一章 十分钟上手 OpenClaw | Node.js 安装、OpenClaw 配置、常用命令和 Coding Plan 模式 | ✅ |
 | 第二章 移动端接入 | 通过 Telegram、飞书和 QQ 实现随时随地的移动端控制 | ✅ |
