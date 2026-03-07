@@ -36,7 +36,7 @@ This is a comprehensive tutorial for OpenClaw, helping you master this powerful 
 **Two Core Modules:**
 
 1. **Adopt Claw (User Guide)**: Quick start with OpenClaw, learn to configure, use and extend this AI assistant
-2. **Build Claw (Developer Guide)**: Implement a simplified AI Agent from scratch, understand how it works
+2. **Build Claw (Developer Guide)**: Deep dive into OpenClaw internals and master customization
 
 **Who Should Learn:**
 
@@ -52,6 +52,7 @@ This is a comprehensive tutorial for OpenClaw, helping you master this powerful 
 
 ## 🔥 News
 
+- **[2026-03-06]** ✅ Completed Ch.1-3: Installation, mobile access (Telegram/Feishu/QQ), automation basics
 - **[2026-03-04]** 🦞 Project launched with two core modules: "Adopt Claw" and "Build Claw"
 
 ## Read Online
@@ -64,22 +65,21 @@ https://datawhalechina.github.io/hello-claw
 
 | Chapter | Description | Status |
 | ---- | ---- | ---- |
-| **Introduction** | **What is OpenClaw, why learn it, and how to use this tutorial** | 🚧 |
+| **Introduction** | **What is OpenClaw, why learn it, and how to use this tutorial** | ✅ |
 | **Quick Start** | | |
-| Ch.1 Quick Start | One-click install, first conversation, core features & basic commands | 🚧 |
-| Ch.2 Understanding OpenClaw | How it works, architecture, vs ChatGPT, security considerations | 🚧 |
-| Ch.3 Mobile Access | Control via Telegram and Feishu anytime, anywhere | 🚧 |
-| Ch.4 Automation Basics | Scheduled reminders, automated reports, periodic workflows | 🚧 |
+| Ch.1 Quick Start OpenClaw | Node.js install, OpenClaw config, common commands, Coding Plan mode | ✅ |
+| Ch.2 Mobile Access | Control via Telegram, Feishu and QQ anytime, anywhere | ✅ |
+| Ch.3 Automation Basics | Scheduled reminders, automated reports, periodic workflows | ✅ |
+| Ch.4 Skills System | Understand skills, install from marketplace, develop custom skills | 🚧 |
 | **Advanced Practice** | | |
-| Ch.5 Skills System | Understand skills, install from marketplace, develop custom skills | 🚧 |
-| Ch.6 External Integrations | Connect Gmail, Google Calendar, file systems & third-party services | 🚧 |
-| Ch.7 Production Deployment | VPS setup, remote deployment, Docker isolation, 24/7 operation | 🚧 |
-| Ch.8 Multi-Model & Cost Optimization | Multiple LLMs, local Ollama, API cost control | 🚧 |
+| Ch.5 External Integrations | Connect Gmail, Google Calendar, file systems & third-party services | 🚧 |
+| Ch.6 Production Deployment | VPS selection, remote deployment, Docker isolation, 24/7 operation | 🚧 |
+| Ch.7 Multi-Model & Cost Optimization | Multiple LLM config, local Ollama, API cost control | 🚧 |
 | **Use Cases** | | |
-| Ch.9 Personal Assistant | Email management, scheduling, info organization, smart reminders | 🚧 |
-| Ch.10 Content Creation | Writing assistance, idea collection, asset management, auto-publishing | 🚧 |
-| Ch.11 Developer Productivity | Code generation, Git automation, doc generation, testing assistance | 🚧 |
-| Ch.12 Troubleshooting | Common issues, performance tuning, community resources | 🚧 |
+| Ch.8 Personal Assistant System | Email management, scheduling, info organization, smart reminders | 🚧 |
+| Ch.9 Content Creation Toolchain | Writing assistance, idea collection, asset management, auto-publishing | 🚧 |
+| Ch.10 Developer Productivity | Code generation, Git automation, doc generation, testing assistance | 🚧 |
+| Ch.11 Troubleshooting & Optimization | Common issues, performance tuning, community resources | 🚧 |
 | **Appendix** | | |
 | Appendix A: Command Reference | Complete CLI command reference | 🚧 |
 | Appendix B: Configuration Guide | Configuration file parameters explained | 🚧 |
@@ -92,29 +92,29 @@ https://datawhalechina.github.io/hello-claw
 
 | Chapter | Description | Status |
 | ---- | ---- | ---- |
-| **Introduction** | **Why build from scratch, Nanobot's 400-line implementation, learning roadmap** | 🚧 |
-| **Basic Implementation** | | |
-| Ch.1 Hello Agent | Connect to LLM API with 50 lines of code | 🚧 |
-| Ch.2 Tool Calling | Implement read tool, parse and execute Function Calling | 🚧 |
-| Ch.3 Agent Loop | Implement main loop that runs until task completion | 🚧 |
-| Ch.4 Bash Tool | Add shell command execution capability | 🚧 |
-| **Skill System** | | |
-| Ch.5 Parse SKILL.md | Implement YAML frontmatter and Markdown parser | 🚧 |
-| Ch.6 Skill Loading | Scan skill directory, inject env vars, auto-activation | 🚧 |
-| Ch.7 First Skill | Build a weather query skill from scratch | 🚧 |
-| **Message Gateway** | | |
-| Ch.8 Telegram Bot | Integrate Telegram for mobile control | 🚧 |
-| Ch.9 Message Routing | Design unified adapter for multi-channel input | 🚧 |
-| Ch.10 Feishu Integration | Add Feishu channel for enterprise scenarios | 🚧 |
-| **Memory & Automation** | | |
-| Ch.11 History & SOUL.md | Implement short-term memory, parse agent identity & behavior | 🚧 |
-| Ch.12 MEMORY.md Persistence | Implement long-term memory read/write and auto-update | 🚧 |
-| Ch.13 Cron Scheduler | Implement scheduled task parsing, scheduling, and execution | 🚧 |
-| Ch.14 OpenClaw Source Code | Clone repo, understand structure, analyze core modules | 🚧 |
+| **Introduction** | **Why build your Claw from scratch, OpenClaw complexity challenges, learning roadmap** | 🚧 |
+| **Part 1: OpenClaw Internal Analysis** | | |
+| Ch.1 Core Concepts & Design | Agent Runtime vs Chatbot, four primitive tools philosophy | 🚧 |
+| Ch.2 Architecture Overview | Gateway, Bus, Agent, Provider modules, message flow | 🚧 |
+| Ch.3 Prompt System | 7 Markdown files architecture, hot reload, Token optimization | 🚧 |
+| Ch.4 Tool System | Four primitive tools, registration mechanism, Skill hierarchy | 🚧 |
+| Ch.5 Message Loop & Events | ReAct loop, LLM tool selection, heartbeat mechanism | 🚧 |
+| Ch.6 Multi-Channel Integration | Adapter design, Telegram/Discord/Feishu/DingTalk | 🚧 |
+| **Part 2: Case Studies** | | |
+| Ch.7 Lightweight Solutions | NanoClaw 500-line, Nanobot 4000-line, ZeroClaw | 🚧 |
+| Ch.8 Security Hardening | IronClaw architecture, permissions, sandbox, audit logs | 🚧 |
+| Ch.9 Hardware Solutions | PicoClaw hardware, Raspberry Pi, low-power optimization | 🚧 |
+| Ch.10 Case Comparison | Comparison matrix, scenario guide, decision tree | 🚧 |
+| **Part 3: Customize Your Claw** | | |
+| Ch.11 Customization Roadmap | Four-level difficulty, scenarios, maintenance costs | 🚧 |
+| Ch.12 Configuration Customization | config.json structure, tool whitelist, security | 🚧 |
+| Ch.13 Skill Development | Skill structure, Frontmatter, async handlers, debugging | 🚧 |
+| Ch.14 Channel Integration | DingTalk/Feishu workflow, adapter development | 🚧 |
+| Ch.15 Complete Cases | Programming assistant, productivity bot, customer service | 🚧 |
 | **Appendix** | | |
-| Appendix A: Code Repository | Complete code and runnable examples for each chapter | 🚧 |
-| Appendix B: Skill Development | 10 skill examples from simple to complex | 🚧 |
-| Appendix C: Architecture Comparison | Design tradeoffs: OpenClaw vs Nanobot | 🚧 |
+| Appendix A: OpenClaw Source Navigation | Core files reference, module locations, debugging tips | 🚧 |
+| Appendix B: Reference Projects | Nanobot, NanoClaw, PicoClaw, IronClaw, ZeroClaw | 🚧 |
+| Appendix C: Development Tools | Debugging, profiling, testing frameworks | 🚧 |
 
 ---
 
@@ -208,4 +208,3 @@ This work is licensed under a
 <div align="center">
   <h3>⭐ If this project helps you, please give us a Star ❤️</h3>
 </div>
-

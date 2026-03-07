@@ -1,62 +1,62 @@
 # Build Claw (Developer Guide)
 
-> Build a simplified AI Agent from scratch and understand how it works
+> Deep dive into OpenClaw internals and master the ability to customize your own AI Agent
 
 ## Introduction
 
-Why build an AI Agent from scratch, Nanobot's 400-line implementation and learning roadmap
+Why build your Claw from scratch, OpenClaw's complexity challenges, minimalist insights and learning roadmap
 
-## Basic Implementation
+## Part 1: OpenClaw Internal Analysis
 
-### Chapter 1: Hello Agent
-Connect to LLM API with 50 lines of code for the first conversation
+### Chapter 1: Core Concepts & Design Philosophy
+Agent Runtime vs Chatbot essential differences, four primitive tools design philosophy, message-driven & local-first strategy
 
-### Chapter 2: Tool Calling
-Implement read tool, parse Function Calling and execute
+### Chapter 2: Architecture Overview
+Gateway, Bus, Agent, Provider four core modules, message flow analysis, event bus design patterns
 
-### Chapter 3: Agent Loop
-Implement loop until task completion
+### Chapter 3: Prompt System
+7 Markdown files prompt architecture, hot reload mechanism, Token optimization strategies
 
-### Chapter 4: Bash Tool
-Add ability to execute Shell commands
+### Chapter 4: Tool System
+Four primitive tools deep dive, tool registration mechanism, tool descriptions impact on LLM accuracy, Skill system hierarchy
 
-## Skills System
+### Chapter 5: Message Loop & Event Driven
+ReAct loop execution flow, LLM tool selection mechanism, heartbeat & automation
 
-### Chapter 5: Parse SKILL.md
-Implement YAML frontmatter and Markdown directive parser
+### Chapter 6: Multi-Channel Integration
+Channel adapter design patterns, unified message format conversion, Telegram/Discord/Feishu/DingTalk integration
 
-### Chapter 6: Skill Loading
-Scan skill directory, environment variable injection and auto-activation
+## Part 2: Case Studies
 
-### Chapter 7: First Skill
-Write a weather query skill from scratch
+### Chapter 7: Lightweight Solutions
+NanoClaw 500-line minimal implementation, Nanobot 4000-line research-friendly version, ZeroClaw vendor-independent approach
 
-## Message Gateway
+### Chapter 8: Security Hardening
+IronClaw security architecture, fine-grained permission control, sandbox isolation, audit logging
 
-### Chapter 8: Telegram Bot
-Integrate Telegram for mobile control
+### Chapter 9: Hardware Solutions
+PicoClaw hardware selection & cost analysis, Raspberry Pi deployment, low-power optimization, edge computing
 
-### Chapter 9: Message Router
-Design unified message adapter for multi-channel input
+### Chapter 10: Case Comparison Summary
+Multi-dimensional comparison matrix, scenario selection guide, learning curve analysis, customization decision tree
 
-### Chapter 10: Feishu Integration
-Add Feishu channel for enterprise scenarios
+## Part 3: Customize Your Claw
 
-## Memory & Automation
+### Chapter 11: Customization Roadmap
+Four-level customization difficulty, applicable scenarios & maintenance costs, learning path recommendations
 
-### Chapter 11: SOUL.md
-Implement short-term memory, parse Agent identity and behavior instructions
+### Chapter 12: Configuration-Level Customization
+config.json structure, tool whitelist, security options, common issues
 
-### Chapter 12: MEMORY.md
-Implement long-term memory read/write and auto-update
+### Chapter 13: Skill Development
+Skill file structure, Frontmatter format, async handlers, error handling & debugging
 
-### Chapter 13: Cron Scheduler
-Implement scheduled task parsing, scheduling and execution
+### Chapter 14: Channel Integration
+DingTalk/Feishu integration workflow, channel adapter development, multi-channel configuration
 
-### Chapter 14: OpenClaw Source
-Clone OpenClaw repo, understand directory structure, core modules and key code
+### Chapter 15: Complete Customization Cases
+Programming assistant Claw, personal productivity assistant, customer service bot, testing & maintenance
 
 ---
 
 > 🚧 Content under development
-
