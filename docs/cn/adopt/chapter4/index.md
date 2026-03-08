@@ -313,6 +313,41 @@ cp -r my-ip ~/.openclaw/skills/
 # 3. 提交 Pull Request
 ```
 
+### 6.4 使用 Skill Seekers 自动生成技能
+
+如果你想为特定技术栈或文档快速生成技能，可以使用 **Skill Seekers** 工具。它能自动将文档网站、GitHub 仓库、PDF 和视频转换为 Claude/Gemini/OpenAI Skills。
+
+**安装**：
+```bash
+pip install skill-seekers
+```
+
+**从文档网站生成技能**：
+```bash
+# 为 React 文档生成技能
+skill-seekers create https://docs.react.dev/
+
+# 从 GitHub 仓库生成
+skill-seekers create facebook/react
+
+# 从本地项目生成
+skill-seekers create ./my-project
+```
+
+**导出为 OpenClaw 可用格式**：
+```bash
+# 打包为 Claude Skill（可导入 OpenClaw）
+skill-seekers package output/react --target claude
+```
+
+**Skill Seekers 的优势**：
+- ⚡ 99%  faster — 数天的手动准备 → 15-45 分钟
+- 🎯 高质量 SKILL.md — 500+ 行的完整技能文件
+- 📊 RAG-ready 分块 — 智能分块保留代码块和上下文
+- 🌐 多源支持 — 文档 + GitHub + PDF + 视频
+
+> 📖 更多信息：[Skill Seekers GitHub](https://github.com/yusufkaraaslan/Skill_Seekers)
+
 </details>
 
 ## 7. 飞书插件：技能实战案例

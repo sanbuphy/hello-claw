@@ -118,9 +118,16 @@ https://datawhalechina.github.io/hello-claw
 
 ---
 
-## 🦞 应用场景大全（持续更新）
+> 🎉 **欢迎大家来贡献案例！**
+>
+> 如果你有独特的 OpenClaw 使用场景或实践经验，欢迎通过以下方式分享：
+> - 提交 PR 添加你的案例到本章节
+> - 提 Issue 描述你的使用场景
+> - 加入社区讨论，与其他开发者交流
+>
+> 每一份贡献都能帮助更多人发现 OpenClaw 的可能性！
 
-> 欢迎贡献你的龙虾使用方法！如果你有独特的 OpenClaw 使用场景，欢迎提交 PR 或 Issue 分享。
+## 🦞 应用场景大全（持续更新）
 
 <table align="center">
   <tr>
@@ -165,9 +172,7 @@ https://datawhalechina.github.io/hello-claw
   </tr>
 </table>
 
-
-
-## 🙏 贡献者名单
+##  贡献者名单
 
 | 姓名 | 职责 | 简介 |
 | :----| :---- | :---- |
