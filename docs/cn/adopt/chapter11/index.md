@@ -159,6 +159,8 @@ openclaw usage --by-skill --period month
 │   ├── TOOLS.md         # 环境专属信息（服务器、设备等）
 │   ├── MEMORY.md        # 长期记忆
 │   ├── HEARTBEAT.md     # 定期巡检清单
+│   ├── BOOT.md          # 网关启动时执行的任务
+│   ├── BOOTSTRAP.md     # 首次运行初始化（完成后自动删除）
 │   └── memory/          # 每日工作日志
 ├── skills/              # 已安装技能及配置
 ├── cron/                # 定时任务

@@ -45,7 +45,17 @@ wsl --install
 >
 > 打开后你会看到一个黑色（或白色）的窗口，里面有一个闪烁的光标，这就是终端。后续所有 `bash` 代码块中的命令都在这里输入。
 
-<!-- TODO: 补充各系统终端界面截图（Windows PowerShell、macOS Terminal、Linux Terminal） -->
+下面是不同系统的终端界面示例，你打开后看到类似的窗口就说明操作正确：
+
+**Windows PowerShell 终端界面：**
+
+![Windows PowerShell 终端界面](/windows-powershell.png)
+
+**Linux 终端界面（通过 SSH 连接远程服务器）：**
+
+![Linux 终端界面](/linux-terminal.png)
+
+<!-- TODO: 补充 macOS Terminal 终端界面截图 -->
 
 ## 2. 安装 Node.js
 
@@ -124,6 +134,10 @@ sudo apt install -y nodejs
 # 验证
 node --version
 ```
+
+看到类似 `v22.x.x` 的版本号说明安装成功：
+
+![node --version 终端输出](/node-version.png)
 
 > 这是最简单的方式，两条命令搞定。适用于 Ubuntu、Debian 及 WSL2。运行时会要求输入密码，输入你的登录密码即可（输入时屏幕不会显示字符，这是正常的）。
 
@@ -205,9 +219,9 @@ npm install -g openclaw@latest
 openclaw --version
 ```
 
-看到版本号说明安装成功。
+看到版本号说明安装成功：
 
-<!-- TODO: 补充 node --version 和 openclaw --version 的终端输出截图 -->
+![openclaw --version 终端输出](/openclaw-version.png)
 
 ## 4. 运行配置向导
 
@@ -216,6 +230,10 @@ openclaw --version
 ```bash
 openclaw onboard --install-daemon
 ```
+
+运行后会出现如下交互式配置界面：
+
+![openclaw onboard 配置向导界面](/openclaw-onboard.png)
 
 这个命令会启动交互式配置向导，并安装后台守护进程（守护进程就是在后台默默运行的程序，让 OpenClaw 在你不操作时也能保持在线）。
 
@@ -238,9 +256,12 @@ openclaw onboard --install-daemon
 | Google | 海外用户 | 需国际信用卡，有免费额度 |
 | xAI | 海外用户 | 需国际信用卡，按量计费 |
 
-### 4.2 获取 API Key：以硅基流动为例
+### 4.2 在向导中配置
 
-> 如果你已有其他提供商的 API Key，可跳过本节，直接看 4.3。
+> 还没有 API Key？展开下方的获取指南，拿到 Key 后再回来继续。
+
+<details>
+<summary>获取 API Key：以硅基流动为例（已有 Key 可跳过）</summary>
 
 **第一步：注册账号**
 
@@ -248,7 +269,7 @@ openclaw onboard --install-daemon
 2. 点击右上角"注册"，使用手机号注册（也支持微信扫码登录）
 3. 注册成功后自动获得 **16 元免费算力券**
 
-<!-- TODO: 补充硅基流动注册页面截图 -->
+![硅基流动注册页面](/siliconflow-register.png)
 
 **第二步：创建 API 密钥**
 
@@ -257,7 +278,7 @@ openclaw onboard --install-daemon
 3. 点击"创建新 API 密钥"
 4. 复制生成的密钥（以 `sk-` 开头）
 
-<!-- TODO: 补充 API 密钥创建页面截图 -->
+![API 密钥创建页面](/siliconflow-api-key.png)
 
 > **重要**：API 密钥只会显示一次，请立即复制保存到安全的地方。如果丢失，需要重新创建。
 
@@ -287,9 +308,9 @@ openclaw onboard --install-daemon
 
 </details>
 
-### 4.3 在向导中配置
+</details>
 
-在配置向导中选择提供商，然后输入 API Key：
+拿到 API Key 后，回到向导继续配置。在向导中选择提供商，然后输入 Key：
 
 ```
 ◇  Model/auth provider
@@ -299,22 +320,41 @@ openclaw onboard --install-daemon
 │  ● Custom（自定义 API 端点）← 硅基流动选这个
 ```
 
-<!-- TODO: 补充配置向导交互界面截图（模型选择步骤） -->
-
 选择 `Custom` 后，按提示输入：
 
 - **API Base URL**：`https://api.siliconflow.cn/v1`
 - **API Key**：粘贴你刚才复制的密钥
 - **默认模型**：`deepseek-ai/DeepSeek-V3`（推荐）
 
-也可以跳过向导，后续通过命令行手动配置：
+也可以跳过向导，直接编辑配置文件 `~/.openclaw/openclaw.json`：
 
-```bash
-openclaw config set llm.provider "siliconflow"
-openclaw config set llm.baseUrl "https://api.siliconflow.cn/v1"
-openclaw config set llm.apiKey "sk-xxxxx"
-openclaw config set llm.default "deepseek-ai/DeepSeek-V3"
+```json
+{
+  "env": {
+    "SILICONFLOW_API_KEY": "sk-你的密钥"
+  },
+  "models": {
+    "mode": "merge",
+    "providers": {
+      "siliconflow": {
+        "baseUrl": "https://api.siliconflow.cn/v1",
+        "apiKey": "${SILICONFLOW_API_KEY}",
+        "api": "openai-completions",
+        "models": [
+          { "id": "deepseek-ai/DeepSeek-V3", "name": "DeepSeek V3" }
+        ]
+      }
+    }
+  },
+  "agents": {
+    "defaults": {
+      "model": { "primary": "siliconflow/deepseek-ai/DeepSeek-V3" }
+    }
+  }
+}
 ```
+
+> **说明**：`env` 中存放 API 密钥，`models.providers` 定义提供商信息，`agents.defaults.model.primary` 指定默认使用的模型。配置完成后运行 `openclaw config validate` 可检查配置是否正确。
 
 ### 4.4 配置聊天渠道（可选）
 

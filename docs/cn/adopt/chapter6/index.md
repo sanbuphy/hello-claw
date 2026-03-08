@@ -65,15 +65,35 @@ openclaw --version
 
 使用第一章获取的 API Key 配置服务器端（以硅基流动为例）：
 
-```bash
-# 方式一：命令行配置
-openclaw config set llm.provider "siliconflow"
-openclaw config set llm.baseUrl "https://api.siliconflow.cn/v1"
-openclaw config set llm.apiKey "sk-xxxxx"
+在部署目录下创建或编辑 `openclaw.json`，填入你的 API Key：
 
-# 方式二：使用环境变量（推荐生产环境，更安全）
-export LLM_API_KEY="sk-xxxxx"
+```json
+{
+  "env": {
+    "SILICONFLOW_API_KEY": "sk-你的密钥"
+  },
+  "models": {
+    "mode": "merge",
+    "providers": {
+      "siliconflow": {
+        "baseUrl": "https://api.siliconflow.cn/v1",
+        "apiKey": "${SILICONFLOW_API_KEY}",
+        "api": "openai-completions",
+        "models": [
+          { "id": "deepseek-ai/DeepSeek-V3", "name": "DeepSeek V3" }
+        ]
+      }
+    }
+  },
+  "agents": {
+    "defaults": {
+      "model": { "primary": "siliconflow/deepseek-ai/DeepSeek-V3" }
+    }
+  }
+}
 ```
+
+> **安全提示**：生产环境建议将密钥写入系统环境变量，再在 `openclaw.json` 中用 `${SILICONFLOW_API_KEY}` 引用，避免密钥明文出现在配置文件里。
 
 > **提示**：如果还没有 API Key，请先完成[第一章 4.2 节](/cn/adopt/chapter1/#_4-2-获取-api-key-以硅基流动为例)的注册步骤。
 
