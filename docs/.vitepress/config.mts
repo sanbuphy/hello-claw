@@ -64,6 +64,16 @@ export default defineConfig({
                 { text: '第10章 开发者效率提升', link: '/cn/adopt/chapter10' },
                 { text: '第11章 故障排查与优化', link: '/cn/adopt/chapter11' }
               ]
+            },
+            {
+              text: '附录',
+              items: [
+                { text: '附录 A：命令速查表', link: '/cn/appendix/appendix-a' },
+                { text: '附录 B：配置文件详解', link: '/cn/appendix/appendix-b' },
+                { text: '附录 C：技能开发模板', link: '/cn/appendix/appendix-c' },
+                { text: '附录 D：学习资源汇总', link: '/cn/appendix/appendix-d' },
+                { text: '附录 E：云服务部署指南', link: '/cn/appendix/appendix-e' }
+              ]
             }
           ],
           '/cn/appendix/': [
