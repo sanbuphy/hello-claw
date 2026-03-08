@@ -4,7 +4,7 @@
 
 ## 1. 系统要求
 
-- **操作系统**：macOS、Linux、或 Windows（推荐 WSL2）
+- **操作系统**：macOS、Linux、或 Windows（直接使用 PowerShell 即可，进阶用户可选 WSL2）
 - **Node.js**：22 或更高版本
 - **内存**：至少 1GB，推荐 4GB
 - **端口**：18789 需要可用（端口就像电脑上的"门牌号"，程序通过它通信。一般不需要额外操作，除非你安装了其他占用该端口的软件）
@@ -47,25 +47,31 @@ wsl --install
 
 ## 2. 安装 Node.js
 
+> **什么是 Node.js？** Node.js 是一个让 JavaScript 语言能在电脑上运行的平台。OpenClaw 是用 JavaScript 编写的，所以需要先安装 Node.js 才能运行它。你不需要学会 JavaScript，只需要安装好 Node.js 就行。
+
 > **国内网络提示**：下面的安装方法默认从国外服务器下载，速度可能较慢。如果遇到下载超时，请参考本节末尾的"国内镜像加速"。
 
 ### Windows 用户（不使用 WSL2）
 
 **方案一：使用一键安装脚本（推荐）**
 
-打开 PowerShell（管理员模式），运行：
-
-```powershell
-iwr -useb https://openclaw.ai/install.ps1 | iex
-```
-
-这个脚本会自动安装 Node.js 和 OpenClaw。如果遇到权限错误，先运行：
+打开 PowerShell（管理员模式），**先运行以下命令允许执行脚本**（Windows 默认禁止运行网络脚本，这一步是解除限制）：
 
 ```powershell
 Set-ExecutionPolicy -ExecutionPolicy RemoteSigned -Scope CurrentUser
 ```
 
+提示确认时输入 `Y` 回车。然后运行一键安装：
+
+```powershell
+iwr -useb https://openclaw.ai/install.ps1 | iex
+```
+
+这个脚本会自动下载并安装 Node.js 和 OpenClaw，全程无需手动操作。
+
 **方案二：手动安装**
+
+> **什么是 nvm？** nvm（Node Version Manager）是一个 Node.js 版本管理工具，可以帮你安装和切换不同版本的 Node.js。如果你只需要装一个版本，用方案一更简单。
 
 1. 下载 nvm-windows：访问 [github.com/coreybutler/nvm-windows/releases](https://github.com/coreybutler/nvm-windows/releases) 下载 `nvm-setup.exe`
 2. 安装后重新打开 PowerShell（管理员模式）
@@ -82,15 +88,31 @@ nvm use 22
 
 ### macOS 用户
 
-使用 Homebrew 安装：
+**方案一：使用 Homebrew 安装（推荐）**
+
+Homebrew 是 macOS 上最流行的软件包管理器，类似于手机上的"应用商店"，可以用一行命令安装各种开发工具。
+
+如果你还没有安装 Homebrew，先在终端运行：
+
+```bash
+/bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
+```
+
+安装完 Homebrew 后，再安装 Node.js：
 
 ```bash
 brew install node@22
 ```
 
+**方案二：使用官方安装包（不想装 Homebrew 的用户）**
+
+访问 [Node.js 官网](https://nodejs.org/)，下载 macOS 安装包（.pkg 文件），双击运行安装即可。注意选择 22.x 版本。
+
 ### Linux 用户（含 WSL2）
 
 **方案一：apt 直接安装（推荐，最简单）**
+
+> **术语说明**：`curl` 是一个下载工具，用来从网上获取文件；`sudo` 是"以管理员身份运行"的意思，安装软件时需要管理员权限。
 
 ```bash
 # 添加 NodeSource 仓库并安装 Node.js 22
@@ -101,7 +123,7 @@ sudo apt install -y nodejs
 node --version
 ```
 
-> 这是最简单的方式，一条命令搞定。适用于 Ubuntu、Debian 及 WSL2。
+> 这是最简单的方式，两条命令搞定。适用于 Ubuntu、Debian 及 WSL2。运行时会要求输入密码，输入你的登录密码即可（输入时屏幕不会显示字符，这是正常的）。
 
 **方案二：使用 nvm 管理多版本**
 
@@ -109,7 +131,7 @@ node --version
 
 ```bash
 curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.39.0/install.sh | bash
-source ~/.bashrc
+source ~/.bashrc   # 重新加载终端配置，让 nvm 命令生效
 nvm install 22
 nvm use 22
 ```
@@ -167,7 +189,9 @@ npm config set registry https://registry.npmmirror.com
 
 ## 3. 安装 OpenClaw
 
-全局安装 OpenClaw CLI：
+全局安装 OpenClaw CLI（CLI 即"命令行界面"，就是在终端里通过输入命令来操作的工具）：
+
+> **什么是 npm？** npm（Node Package Manager）是 Node.js 自带的"软件安装器"。安装好 Node.js 后，npm 就自动可用了。下面这条命令的意思是：用 npm 把 OpenClaw 安装到电脑上（`-g` 表示全局安装，让你在任何目录都能使用 `openclaw` 命令）。
 
 ```bash
 npm install -g openclaw@latest
@@ -204,6 +228,11 @@ openclaw onboard --install-daemon
 | 豆包 | 国内用户（备选） | 火山方舟平台，模型丰富 |
 | 混元 | 国内用户（备选） | hunyuan-lite 免费无限量 |
 | 深度求索 / 月之暗面 / 阶跃星辰 / 稀宇科技 / 智谱 / 文心一言 | 国内用户（其他选择） | 支持支付宝，按量计费 |
+| OpenRouter | 海外用户 | 需国际信用卡，按量计费 |
+| OpenAI | 海外用户 | 需国际信用卡，按量计费 |
+| Anthropic | 海外用户 | 需国际信用卡，按量计费 |
+| Google | 海外用户 | 需国际信用卡，有免费额度 |
+| xAI | 海外用户 | 需国际信用卡，按量计费 |
 
 ### 4.2 获取 API Key：以硅基流动为例
 
@@ -246,7 +275,11 @@ openclaw onboard --install-daemon
 - **稀宇科技（MiniMax）**：访问 https://platform.minimaxi.com ，支持语音和多模态
 - **智谱（GLM）**：访问 https://open.bigmodel.cn ，清华技术背景，中文理解能力强
 - **文心一言（百度/ERNIE）**：访问 https://console.bce.baidu.com/qianfan ，百度生态，中文内容生成
-- **OpenRouter**：访问 https://openrouter.ai ，一个 Key 可访问多家模型
+- **OpenRouter**：访问 https://openrouter.ai ，一个 Key 可访问多家模型（含上述所有海外模型）
+- **OpenAI（GPT）**：访问 https://platform.openai.com ，最新旗舰模型 GPT-5.4，需国际信用卡
+- **Anthropic（Claude）**：访问 https://console.anthropic.com ，最新旗舰模型 Claude Opus 4.6，需国际信用卡
+- **Google（Gemini）**：访问 https://aistudio.google.com ，最新旗舰模型 Gemini 3.1 Pro，有免费额度
+- **xAI（Grok）**：访问 https://console.x.ai ，最新旗舰模型 Grok-4，需国际信用卡
 
 </details>
 
@@ -304,6 +337,8 @@ openclaw dashboard
 ```
 
 浏览器会自动打开 `http://localhost:18789`，你可以在这里和 OpenClaw 对话。
+
+> **什么是 localhost？** `localhost` 就是"本机"的意思，指你自己的电脑。`http://localhost:18789` 表示访问本机 18789 端口上运行的服务。这个网页只有你自己能打开，外人无法访问。
 
 ## 6. 第一次对话
 
@@ -467,7 +502,7 @@ openclaw gateway restart
 
 **Q: 提示"API key not found"怎么办？**
 
-A: 编辑配置文件 `openclaw.json`，确保 API 密钥配置正确。例如使用硅基流动：
+A: 编辑配置文件 `openclaw.json`（位于 `~/.openclaw/openclaw.json`，Windows 上是 `C:\Users\你的用户名\.openclaw\openclaw.json`），确保 API 密钥配置正确。你可以用任何文本编辑器（如记事本、VS Code）打开它。例如使用硅基流动：
 
 ```json
 {
