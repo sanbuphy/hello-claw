@@ -23,7 +23,7 @@ export default defineConfig({
           label: '目录'
         },
         nav: [
-          { text: '领养龙虾', link: '/cn/adopt/' },
+          { text: '领养龙虾', link: '/cn/adopt/chapter0' },
           { text: '构建龙虾', link: '/cn/build/' },
           { text: 'GitHub', link: 'https://github.com/datawhalechina/hello-claw' },
         ],
@@ -51,7 +51,7 @@ export default defineConfig({
             {
               text: '领养 Claw（使用篇）',
               items: [
-                { text: '写在开头', link: '/cn/adopt/' },
+                { text: '第0章 写在开头', link: '/cn/adopt/chapter0' },
                 { text: '第1章 拥有你的第一个 QQ AI 助手', link: '/cn/adopt/chapter1' },
                 { text: '第2章 命令行与配置详解', link: '/cn/adopt/chapter2' },
                 { text: '第3章 移动端接入', link: '/cn/adopt/chapter3' },
@@ -80,7 +80,7 @@ export default defineConfig({
             {
               text: '领养 Claw（使用篇）',
               items: [
-                { text: '写在开头', link: '/cn/adopt/' },
+                { text: '第0章 写在开头', link: '/cn/adopt/chapter0' },
                 { text: '第1章 拥有你的第一个 QQ AI 助手', link: '/cn/adopt/chapter1' },
                 { text: '第2章 命令行与配置详解', link: '/cn/adopt/chapter2' },
                 { text: '第3章 移动端接入', link: '/cn/adopt/chapter3' },
@@ -149,7 +149,7 @@ export default defineConfig({
       themeConfig: {
         logo: '🦞',
         nav: [
-          { text: 'Adopt', link: '/en/adopt/' },
+          { text: 'Adopt', link: '/en/adopt/chapter0' },
           { text: 'Build', link: '/en/build/' },
           { text: 'GitHub', link: 'https://github.com/datawhalechina/hello-claw' },
         ],
@@ -158,7 +158,7 @@ export default defineConfig({
             {
               text: 'Adopt Claw (User Guide)',
               items: [
-                { text: 'Introduction', link: '/en/adopt/' },
+                { text: 'Chapter 0: Introduction', link: '/en/adopt/chapter0' },
                 { text: 'Chapter 1: Quick Start', link: '/en/adopt/chapter1' },
                 { text: 'Chapter 2: Understanding OpenClaw', link: '/en/adopt/chapter2' },
                 { text: 'Chapter 3: Mobile Access', link: '/en/adopt/chapter3' },
