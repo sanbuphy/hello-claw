@@ -12,18 +12,63 @@ Google Workspace（gog）技能提供了 Gmail、Calendar、Drive、Docs、Sheet
 
 ### 1.1 安装与配置
 
-<!-- TODO: 补充 OAuth 授权流程截图 -->
+gog 技能依赖一个独立的命令行工具 `gog`，需要分三步完成配置：安装 gog CLI → 创建 Google OAuth 凭证 → 授权登录。
+
+**第一步：安装 gog 技能和 gog CLI**
 
 ```bash
+# 安装 OpenClaw 技能
 clawhub install gog
+
+# 安装 gog 命令行工具
+brew install steipete/tap/gogcli
 ```
 
-安装后需要完成 Google OAuth 授权（OAuth 是一种安全的授权方式，让 OpenClaw 可以代你访问 Google 服务，而不需要你提供 Google 密码）：
+> **没有 Homebrew？** macOS 用户先运行：`/bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"`。Linux 用户参考 [gog 官网](https://gogcli.sh) 的安装方式。
 
-1. OpenClaw 会生成一个授权链接
-2. 在浏览器中打开链接，登录 Google 账号
-3. 授权 OpenClaw 访问你的 Gmail、Calendar、Drive
-4. 复制返回的授权码，粘贴到终端
+验证安装成功：
+
+```bash
+gog --version
+```
+
+**第二步：创建 Google OAuth 凭证**
+
+> **什么是 OAuth？** OAuth 是一种安全的授权方式，让 gog 可以代你访问 Google 服务，而不需要你提供 Google 密码。你需要在 Google Cloud Console 创建一个"凭证"，相当于给 gog 一把专属钥匙。
+
+1. 访问 [Google Cloud Console](https://console.cloud.google.com/)，登录你的 Google 账号
+2. 创建一个新项目（或使用已有项目）
+3. 进入 **APIs & Services → Credentials**
+4. 点击 **Create Credentials → OAuth client ID**
+5. 选择 **Desktop app**，点击创建
+6. 下载生成的 JSON 文件（`client_secret_xxx.json`）
+
+> **首次使用 Google Cloud Console？** 你可能需要先启用相关 API：进入 **APIs & Services → Library**，搜索并启用 Gmail API、Google Calendar API、Google Drive API、Google Sheets API。
+
+**第三步：授权登录**
+
+```bash
+# 导入 OAuth 凭证
+gog auth credentials /path/to/client_secret_xxx.json
+
+# 授权你的 Google 账号（会自动打开浏览器完成登录）
+gog auth add you@gmail.com --services gmail,calendar,drive,contacts,sheets,docs
+```
+
+> 把 `you@gmail.com` 替换成你的实际 Gmail 地址，`/path/to/client_secret_xxx.json` 替换成你下载的凭证文件路径。
+
+验证授权成功：
+
+```bash
+gog auth list
+```
+
+> **提示**：为了方便使用，建议设置默认账号环境变量，这样每次调用 gog 时不用重复指定账号：
+> ```bash
+> export GOG_ACCOUNT=you@gmail.com
+> # 写入 shell 配置使其永久生效
+> echo 'export GOG_ACCOUNT=you@gmail.com' >> ~/.bashrc
+> ```
 
 ### 1.2 Gmail 管理
 
