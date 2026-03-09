@@ -36,14 +36,39 @@ gog --version
 
 > **什么是 OAuth？** OAuth 是一种安全的授权方式，让 gog 可以代你访问 Google 服务，而不需要你提供 Google 密码。你需要在 Google Cloud Console 创建一个"凭证"，相当于给 gog 一把专属钥匙。
 
-1. 访问 [Google Cloud Console](https://console.cloud.google.com/)，登录你的 Google 账号
-2. 创建一个新项目（或使用已有项目）
-3. 进入 **APIs & Services → Credentials**
-4. 点击 **Create Credentials → OAuth client ID**
-5. 选择 **Desktop app**，点击创建
-6. 下载生成的 JSON 文件（`client_secret_xxx.json`）
+整个过程分三小步：启用 API → 配置同意屏幕 → 创建凭证。
 
-> **首次使用 Google Cloud Console？** 你可能需要先启用相关 API：进入 **APIs & Services → Library**，搜索并启用 Gmail API、Google Calendar API、Google Drive API、Google Sheets API。
+**2a. 启用 Google API**
+
+1. 访问 [Google Cloud Console](https://console.cloud.google.com/)，登录你的 Google 账号
+2. 如果已有项目（顶部会显示项目名），直接使用即可；如果没有，点击顶部**项目选择器**（Google Cloud 标志旁边的下拉框）→ **New Project** 创建一个
+3. 在左侧菜单点击 **APIs & Services → Library**
+4. 搜索并逐个启用以下 API（点击进入后点蓝色 **Enable** 按钮）：
+   - Gmail API
+   - Google Calendar API
+   - Google Drive API
+   - Google Sheets API
+
+**2b. 配置 OAuth 同意屏幕**
+
+> 这一步告诉 Google"谁在请求访问用户数据"。不配置就无法创建凭证。
+
+1. 在左侧菜单点击 **Google Auth platform → Branding**（如果首次进入会显示 **Get Started**，点击它）
+2. 填写 **App name**（随便起，如"gog-cli"）和 **User support email**（填你自己的邮箱），点击 **Next**
+3. **Audience** 选择 **External**（个人用户选这个），点击 **Next**
+4. **Contact Information** 填写你的邮箱，点击 **Next**
+5. 勾选同意 Google API Services User Data Policy，点击 **Continue** → **Create**
+6. 进入 **Google Auth platform → Audience**，在 **Test users** 区域点击 **Add users**，添加你自己的 Gmail 地址，点击 **Save**
+
+> **为什么要添加测试用户？** 选择 External 后，应用处于"测试"状态，只有被添加为测试用户的 Google 账号才能完成授权。把你自己的 Gmail 加进去就行。
+
+**2c. 创建 OAuth 凭证并下载**
+
+1. 在左侧菜单点击 **Google Auth platform → Clients**
+2. 点击 **Create Client**
+3. **Application type** 选择 **Desktop app**，名称随便填（如"gog"），点击 **Create**
+4. 创建成功后，在凭证列表中找到刚创建的条目，点击右侧的**下载图标**（↓）
+5. 下载得到 `client_secret_xxx.json` 文件，保存到你记得住的位置
 
 **第三步：授权登录**
 
