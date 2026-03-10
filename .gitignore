@@ -7,3 +7,4 @@ docs/.vitepress/cache
 .omc
 
 CLAUDE.md
+temp/*

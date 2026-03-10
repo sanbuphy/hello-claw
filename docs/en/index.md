@@ -77,6 +77,7 @@ features:
 
 ## 🔥 Latest Updates
 
+- **[2026-03-10]** ✅ Updated Build Claw Chapter 7-9: Lightweight, Security Hardening, Hardware
 - **[2026-03-04]** 🦞 Project launched with "Adopt Claw" and "Build Claw" modules
 
 > [!WARNING]

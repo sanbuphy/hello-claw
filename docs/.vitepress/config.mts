@@ -1,9 +1,13 @@
 import { defineConfig } from 'vitepress'
+import tailwindcss from '@tailwindcss/vite'
 
 const baseConfig = '/hello-claw/'
 
 export default defineConfig({
   base: baseConfig,
+  vite: {
+    plugins: [tailwindcss()]
+  },
   ignoreDeadLinks: [
     /^http:\/\/localhost/,
   ],
