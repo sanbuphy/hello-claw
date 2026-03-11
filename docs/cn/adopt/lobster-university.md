@@ -2,6 +2,9 @@
 
 先说一句大白话：龙虾不是天生全能，**装对 Skills 才会变强**。  
 不装技能，它更像“会聊天的聪明同学”；装了技能，它才是“能帮你干活的执行者”。
+龙虾大学支持 **ClawHub 原版 + 中文 ClawHub（腾讯 SkillHub）** 双入口，你可以按使用习惯选择。
+
+[🚀 进入 ClawHub 原版](https://clawhub.ai/) | [🇨🇳 进入中文 ClawHub（腾讯 SkillHub）](https://skillhub.tencent.com/#categories)
 
 但也别贪多。技能不是越多越好，装太多会把上下文塞满，响应变慢、判断变糊、命中率变差。  
 所以龙虾大学的目标就一个：**按场景精选，不求最多，只求最能打**。
@@ -12,7 +15,7 @@
 
 如果你只记住一个方法，就记这个：
 
-1. 去 [ClawHub](https://clawhub.ai/) 搜技能  
+1. 去 [ClawHub 原版](https://clawhub.ai/) 或 [中文 ClawHub（腾讯 SkillHub）](https://skillhub.tencent.com/#categories) 按分类搜技能  
 2. 用 `clawhub install <skill-slug>` 安装  
 3. 装完立刻做一个真实任务测试  
 
@@ -20,11 +23,12 @@
 clawhub install <skill-slug>
 ```
 
-ClawHub 是 OpenClaw 技能的“技能码头”：上传、版本化、检索、安装都围绕它。  
+ClawHub 是 OpenClaw 技能的“技能码头”：上传、版本化、检索、安装都围绕它。你可以按需使用原版入口或中文入口。  
 想看更系统的分类清单与示例，直接看社区整理库：
 
 - [awesome-openclaw-skills（5,000+ 分类技能清单）](https://github.com/VoltAgent/awesome-openclaw-skills)
-- [ClawHub 官方站](https://clawhub.ai/)
+- [ClawHub 原版](https://clawhub.ai/)
+- [中文 ClawHub（腾讯 SkillHub）](https://skillhub.tencent.com/#categories)
 
 如果你不想全局安装 CLI，也可以直接用一次性命令安装：
 
@@ -96,7 +100,7 @@ clawhub install gog
 - 全量分类与海量技能库：  
   [awesome-openclaw-skills](https://github.com/VoltAgent/awesome-openclaw-skills)
 - 技能发布、版本与安装入口：  
-  [clawhub.ai](https://clawhub.ai/)
+  [ClawHub 原版](https://clawhub.ai/) ｜ [中文 ClawHub（腾讯 SkillHub）](https://skillhub.tencent.com/#categories)
 - 本教程 Skills 章节（安装、配置、实战）：  
   [第六章 技能系统入门](/cn/adopt/chapter6/)
 

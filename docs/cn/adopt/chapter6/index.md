@@ -70,7 +70,7 @@ SoftDeleted --uninstall--> Unregistered
 
 ## 2. ClawHub：技能注册表
 
-OpenClaw 社区维护了一个名为 [ClawHub](https://clawhub.ai) 的技能注册表（类似 npm 之于 Node.js），源码托管在 `github.com/openclaw/clawhub`。你可以通过 `clawhub` 命令行工具或 [clawhub.ai](https://clawhub.ai) 网站浏览和管理技能。
+OpenClaw 社区维护了一个名为 [ClawHub](https://clawhub.ai) 的技能注册表（类似 npm 之于 Node.js），源码托管在 `github.com/openclaw/clawhub`。你可以通过 `clawhub` 命令行工具，或通过 [ClawHub 原版](https://clawhub.ai) / [中文 ClawHub（腾讯 SkillHub）](https://skillhub.tencent.com/#categories) 浏览和管理技能。
 
 ### 2.0 安装 clawhub CLI
 
@@ -82,7 +82,7 @@ npm i -g clawhub
 
 安装后需要登录才能使用：
 
-1. 访问 [clawhub.ai](https://clawhub.ai)，注册并登录
+1. 访问 [ClawHub 原版](https://clawhub.ai) 或 [中文 ClawHub（腾讯 SkillHub）](https://skillhub.tencent.com/#categories)，注册并登录
 2. 点击右上角**用户头像**，选择 **Settings**
 3. 在设置页面找到 **API tokens** 栏，点击 **Create token**
 4. 复制生成的 Token（只显示一次，请立即保存）
