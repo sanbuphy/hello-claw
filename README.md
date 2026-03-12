@@ -180,9 +180,10 @@ https://datawhalechina.github.io/hello-claw
 
 | 姓名 | 职责 | 简介 |
 | :----| :---- | :---- |
-| [桂子轩](https://github.com/) | 核心贡献者 | - |
-| [赵志民](https://github.com/) | 核心贡献者 | - |
-| [散步](https://github.com/sanbuphy) | 项目负责人 | - |
+| [桂子轩](https://github.com/zixuangui-rgb) | 核心贡献者 | - |
+| [赵志民](https://github.com/zhimin-z) | 核心贡献者 | - |
+| [李秀奇](https://github.com/li-xiu-qi) | 核心贡献者 | - |
+| [散步](https://github.com/sanbuphy) | 核心贡献者 | - |
 
 *欢迎更多贡献者加入*
 
