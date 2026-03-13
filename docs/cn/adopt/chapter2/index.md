@@ -1,3 +1,12 @@
+---
+prev:
+  text: '第1章 AutoClaw 一键安装'
+  link: '/cn/adopt/chapter1'
+next:
+  text: '第3章 初始配置向导'
+  link: '/cn/adopt/chapter3'
+---
+
 # 第二章 OpenClaw 快速安装
 
 > 本章带你手动安装 OpenClaw 并配置 AI 模型。完成后你将拥有一个可以在终端对话的 AI 助手。
@@ -341,8 +350,3 @@ rm -rf ~/.openclaw           # 删除配置和状态数据
 > **注意**：卸载前建议备份你的 workspace 目录（`~/.openclaw/workspace`），其中包含对话历史、记忆文件等重要数据。
 
 </details>
-
----
-
-**下一步**：
-- 接入 QQ、飞书或 Telegram → [第四章 Chat Provider 配置](/cn/adopt/chapter4/)

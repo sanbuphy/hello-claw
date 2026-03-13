@@ -1,3 +1,12 @@
+---
+prev:
+  text: '第5章 模型管理'
+  link: '/cn/adopt/chapter5'
+next:
+  text: '第7章 工具与定时任务'
+  link: '/cn/adopt/chapter7'
+---
+
 # 第六章 智能体管理
 
 > 本章深入介绍 OpenClaw 的智能体（Agent）系统——龙虾的"大脑"是如何工作的。完成后你将理解网关架构、Agent 运行时、会话管理、记忆系统、多 Agent 路由等核心概念，并能根据需求调整配置。
@@ -1432,9 +1441,3 @@ A: 检查 Gateway 状态（`openclaw status`）和日志（`openclaw logs --limi
 **Q: 如何保护多人场景下的隐私？**
 
 A: 设置 `session.dmScope` 为 `per-channel-peer` 隔离每个人的会话。运行 `openclaw security audit` 检查安全配置。
-
----
-
-**下一步**：
-- 想了解工具系统？→ [第七章 工具与定时任务](/cn/adopt/chapter7/)
-- 想了解更多配置细节？→ [附录 G 配置文件详解](/cn/appendix/appendix-g)

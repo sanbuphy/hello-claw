@@ -1,3 +1,12 @@
+---
+prev:
+  text: '第9章 远程访问与网络'
+  link: '/cn/adopt/chapter9'
+next:
+  text: '第11章 Web 界面与客户端'
+  link: '/cn/adopt/chapter11'
+---
+
 # 第十章 安全防护与威胁模型
 
 > 本章介绍 OpenClaw 面临的安全威胁、防护措施和威胁建模方法论。读完本章，你将能评估自己部署的安全状况，并采取有效的加固措施。
@@ -730,9 +739,3 @@ make routing-isolation-negative
 | 自己用 + 极致安全 | 虚拟机隔离 + 密钥隔离 + 网络隔离（详见第 4 节） |
 | 群聊使用 | 沙盒模式 `all` + 白名单 + 独立实例 + 日志监控 |
 
-**下一步**：
-- Web 界面与客户端 → [第十一章](/cn/adopt/chapter11/)
-- 远程访问详细配置（SSH 隧道、Tailscale 组网）→ [第九章](/cn/adopt/chapter9/)
-- 沙箱和工具策略详细配置 → [第八章](/cn/adopt/chapter8/)
-- 查看完整配置参考 → [附录 G 配置文件详解](/cn/appendix/appendix-g)
-- 社区安全讨论与生态展望 → [附录 B](/cn/appendix/appendix-b)

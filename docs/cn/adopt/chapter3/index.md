@@ -1,3 +1,12 @@
+---
+prev:
+  text: '第2章 OpenClaw 手动安装'
+  link: '/cn/adopt/chapter2'
+next:
+  text: '第4章 聊天平台接入'
+  link: '/cn/adopt/chapter4'
+---
+
 # 第三章 初始配置向导
 
 > 本章详解 OpenClaw 的首次配置体验——从「装好了，然后呢？」到「龙虾已就绪」的完整流程。
@@ -462,20 +471,3 @@ Remote 模式仅配置本地客户端连接远程 Gateway 的方式（SSH 隧道
 
 不会。除非你显式选择 Reset 或传入 `--reset` 参数，向导会保留现有配置，只修改你选择更改的部分。
 
----
-
-**下一步**：
-
-恭喜！领养篇 11 章全部完成 🦞 以下附录可按需查阅：
-
-| 附录 | 内容简介 |
-|------|---------|
-| [附录 A：学习资源汇总](/cn/appendix/appendix-a) | 8 大类学习资源，80+ 精选链接 |
-| [附录 B：社区之声与生态展望](/cn/appendix/appendix-b) | 6 大议题深度讨论 + 金句精选 |
-| [附录 C：类 Claw 方案对比与选型](/cn/appendix/appendix-c) | 桌面客户端 / 托管服务 / 云厂商 / 开源自建 / 移动端 5 大类对比 |
-| [附录 D：技能开发与发布指南](/cn/appendix/appendix-d) | SKILL.md 格式 + skill-creator + ClawHub 发布流程 |
-| [附录 E：模型提供商选型指南](/cn/appendix/appendix-e) | 聚合网关 / 国内 / 国际 / 本地 4 大类系统对比 |
-| [附录 F：命令速查表](/cn/appendix/appendix-f) | 按场景分类的全部 CLI 命令参考 |
-| [附录 G：配置文件详解](/cn/appendix/appendix-g) | openclaw.json 各项参数逐项解读 |
-
-- 想深入了解原理？→ [构建 Claw（开发篇）](/cn/build/)

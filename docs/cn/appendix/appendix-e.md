@@ -1,3 +1,12 @@
+---
+prev:
+  text: '附录 D：技能开发与发布指南'
+  link: '/cn/appendix/appendix-d'
+next:
+  text: '附录 F：命令速查表'
+  link: '/cn/appendix/appendix-f'
+---
+
 # 附录 E：模型提供商选型指南
 
 > 最后更新：2026-03-12 | 价格与功能可能随时调整，请以各提供商官网最新信息为准。

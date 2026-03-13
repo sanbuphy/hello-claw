@@ -1,3 +1,12 @@
+---
+prev:
+  text: '第10章 安全防护与威胁模型'
+  link: '/cn/adopt/chapter10'
+next:
+  text: '附录 A：学习资源汇总'
+  link: '/cn/appendix/appendix-a'
+---
+
 # 第十一章 Web 界面与客户端
 
 > 本章介绍 OpenClaw 的各种交互界面：Web 控制面板（Dashboard）、内置 WebChat 聊天、macOS Control UI 桌面客户端、终端 TUI，以及第三方 Web 客户端。读完本章，你将掌握所有与龙虾"面对面"交流的方式。
@@ -398,8 +407,3 @@ A: 可以。建立 SSH 隧道后，在本地浏览器访问 `http://localhost:18
 **Q: Control UI 只有 macOS 版本吗？**
 
 A: 是的。Windows 和 Linux 用户可以使用 Dashboard（功能基本等价）或社区桌面客户端如 [ClawX](/cn/adopt/chapter1/)。
-
----
-
-**下一步**：
-- 配置首次使用向导 → [第三章 初始配置向导](/cn/adopt/chapter3/)

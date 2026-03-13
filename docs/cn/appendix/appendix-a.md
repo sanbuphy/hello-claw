@@ -1,3 +1,12 @@
+---
+prev:
+  text: '第11章 Web 界面与客户端'
+  link: '/cn/adopt/chapter11'
+next:
+  text: '附录 B：社区之声与生态展望'
+  link: '/cn/appendix/appendix-b'
+---
+
 # 附录 A：学习资源汇总
 
 学习 OpenClaw 最大的挑战不是技术本身，而是信息过载。搜索"OpenClaw 教程"会看到上百篇文章、几十个视频、无数个 GitHub 仓库——有人说"10 分钟上手"，有人说"需要一个月"；有人推荐本地部署，有人建议云端运行。

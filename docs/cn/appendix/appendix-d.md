@@ -1,3 +1,12 @@
+---
+prev:
+  text: '附录 C：类 Claw 方案对比与选型'
+  link: '/cn/appendix/appendix-c'
+next:
+  text: '附录 E：模型提供商选型指南'
+  link: '/cn/appendix/appendix-e'
+---
+
 # 附录 D：技能开发与发布指南
 
 OpenClaw 的技能（Skill）系统是其核心扩展机制——通过编写一个 `SKILL.md` 文件，你就能让 AI Agent 学会新能力。本附录从零讲解技能的结构、开发流程和发布方式。

@@ -1,3 +1,12 @@
+---
+prev:
+  text: '附录 E：模型提供商选型指南'
+  link: '/cn/appendix/appendix-e'
+next:
+  text: '附录 G：配置文件详解'
+  link: '/cn/appendix/appendix-g'
+---
+
 # 附录 F：命令速查表
 
 刚装好 OpenClaw，面对几十条命令不知从何下手？这份速查表把所有 CLI 命令按使用场景分好了类——从安装到日常操作，从渠道管理到故障排查，**需要什么查什么**，不必通读。

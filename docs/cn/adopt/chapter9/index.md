@@ -1,3 +1,12 @@
+---
+prev:
+  text: '第8章 网关运维'
+  link: '/cn/adopt/chapter8'
+next:
+  text: '第10章 安全防护与威胁模型'
+  link: '/cn/adopt/chapter10'
+---
+
 # 第九章 远程访问与网络
 
 > 本章介绍如何从其他设备远程访问你的 OpenClaw Gateway：SSH 隧道、Tailscale 组网、macOS 客户端配置和安全最佳实践。读完本章，你将能从任何地方安全地控制你的 Gateway。
@@ -496,8 +505,3 @@ openclaw gateway status --url ws://<tailscale-ip>:18789 --token 你的token
 | 需要公网访问 | Tailscale Funnel + password |
 | 同一局域网 | LAN 绑定 + token 认证 |
 
-**下一步**：
-- 安全防护与威胁模型 → [第十章](/cn/adopt/chapter10/)
-- Gateway 运维细节（配置热更新、日志、心跳、沙箱等）→ [第八章](/cn/adopt/chapter8/)
-- 查看完整配置参考 → [附录 G 配置文件详解](/cn/appendix/appendix-g)
-- 查看命令速查 → [附录 F 命令速查表](/cn/appendix/appendix-f)

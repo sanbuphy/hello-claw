@@ -1,3 +1,12 @@
+---
+prev:
+  text: '附录 B：社区之声与生态展望'
+  link: '/cn/appendix/appendix-b'
+next:
+  text: '附录 D：技能开发与发布指南'
+  link: '/cn/appendix/appendix-d'
+---
+
 # 附录 C：类 Claw 方案对比与选型指南
 
 > 最后更新：2026-03-13 | 价格与功能可能随时调整，请以各产品官网最新信息为准。
@@ -563,9 +572,3 @@ Set-ExecutionPolicy Bypass -Scope Process -Force; Invoke-Expression ((New-Object
 | **360** | [纳米AI](https://www.n.cn/)（多智能体蜂群架构）+ [SEAF 企业智能体平台](https://sea.n.cn/) | 消费端 + 企业端 | ✅ 已上线 |
 
 > 这场竞争的本质是**入口之争**——谁能成为用户调用 AI 能力的默认界面。从聊天平台（微信/QQ/飞书）到桌面客户端、从云服务到手机系统层，各家都在抢占自己最擅长的位置。
-
----
-
-**导航**
-
-← [附录 B：配置文件详解](/cn/appendix/appendix-b) | [返回导言](/cn/adopt/intro/) | [附录 D：学习资源汇总](/cn/appendix/appendix-d) →

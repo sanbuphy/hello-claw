@@ -1,3 +1,12 @@
+---
+prev:
+  text: '第3章 初始配置向导'
+  link: '/cn/adopt/chapter3'
+next:
+  text: '第5章 模型管理'
+  link: '/cn/adopt/chapter5'
+---
+
 # 第四章 聊天平台接入
 
 > 本章介绍如何将 OpenClaw 接入聊天平台，让你的龙虾拥有"联系方式"。完成后你可以在飞书中随时和它对话。
@@ -421,9 +430,3 @@ A: 修改配置后必须重启网关：`openclaw gateway restart`。更多配置
 **Q: 群聊中 @了机器人但没反应？**
 
 A: 检查 `groupPolicy` 是否为 `"disabled"`；如果是 `"allowlist"`，确认该群的 ID 已加入白名单。
-
----
-
-**下一步**：
-- 配置模型提供商与多模型切换 → [第五章 模型管理](/cn/adopt/chapter5/)
-- 查看渠道相关命令 → [附录 F 命令速查表](/cn/appendix/appendix-f)
