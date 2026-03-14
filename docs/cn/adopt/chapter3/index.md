@@ -9,13 +9,13 @@ next:
 
 # 第三章 初始配置向导
 
-> 本章详解 OpenClaw 的首次配置体验——从「装好了，然后呢？」到「龙虾已就绪」的完整流程。
+> 跑完本章，龙虾就能开口说话了。
 
-> **前置条件**：已完成[第二章 OpenClaw 手动安装](/cn/adopt/chapter2/)，OpenClaw CLI 已安装。
+> **前置条件**：已完成[第二章 OpenClaw 手动安装](/cn/adopt/chapter2/)。
 
-## 0. 全景：两条 Onboarding 路径
+## 0. 两条路径，选一条
 
-安装完 OpenClaw 后，你需要通过 **Onboarding（配置向导）** 告诉龙虾三件事：用谁的大脑（模型）、怎么联系你（渠道）、在哪里工作（工作区）。OpenClaw 提供两条路径：
+**Onboarding（配置向导）** 帮你告诉龙虾三件事：用哪个模型、通过哪个渠道联系你、在哪里工作。OpenClaw 提供两条路径：
 
 ![OpenClaw Onboarding](/OpenClaw-Onboarding.png)
 
@@ -52,13 +52,11 @@ C["Gateway 启动
 | **CLI 配置向导** | 需要完全控制、远程服务器、自动化脚本 | macOS / Linux / Windows (WSL2) |
 | **macOS 应用引导** | 希望图形化引导、需要语音/摄像头等原生权限 | 仅 macOS |
 
-> **已经在第二章跑过 `openclaw onboard` 了？** 那你已经完成了基本配置！本章帮你理解向导的每一步做了什么，以及如何利用高级选项微调配置。
+> **已经在第二章跑过 `openclaw onboard` 了？** 基本配置已完成！本章帮你理解每一步做了什么，以及如何微调。
 
 ---
 
 ## 1. CLI 配置向导（所有平台）
-
-CLI 向导是最通用的 Onboarding 方式，适用于 macOS、Linux 和 Windows（WSL2）。
 
 ### 1.1 启动向导
 
@@ -100,19 +98,11 @@ QuickStart 模式自动应用以下默认值：
 
 </details>
 
-### 1.3 向导配置的六个步骤
-
-无论选择哪种模式，向导都会依次走过这些步骤：
+### 1.3 向导的六个步骤
 
 #### 步骤一：模型与认证
 
-选择模型提供商和认证方式。支持的认证方式：
-
-- **API Key**：直接粘贴密钥（最常用）
-- **OAuth**：浏览器授权（部分提供商支持）
-- **Setup Token**：一次性令牌
-
-> 不确定选哪个？详见[第五章 模型管理](/cn/adopt/chapter5/)了解各提供商的接入方式。
+选择模型提供商，粘贴 API Key。不确定选哪个？见[第五章 模型管理](/cn/adopt/chapter5/)。
 
 <details>
 <summary>安全提示：模型选择与工具安全</summary>
@@ -142,19 +132,11 @@ openclaw onboard --secret-input-mode ref --non-interactive
 
 #### 步骤二：工作区
 
-配置龙虾的工作目录，存放 IDENTITY.md、MEMORY.md 等工作区文件。
-
-- 默认路径：`~/.openclaw/workspace/`
-- 如果路径下已有工作区文件，向导会复用而非覆盖
+设置龙虾的工作目录（默认 `~/.openclaw/workspace/`），存放 IDENTITY.md、MEMORY.md 等文件。已有工作区文件会被保留。
 
 #### 步骤三：Gateway 配置
 
-设置 Gateway 的运行参数：
-
-- **端口**：默认 18789
-- **绑定地址**：默认 127.0.0.1（仅本机）
-- **认证模式**：Token 或密码
-- **Tailscale 暴露**：是否通过 Tailnet 访问
+设置端口（默认 18789）、绑定地址（默认仅本机）和认证方式。
 
 <details>
 <summary>Gateway Token 与 SecretRef</summary>
@@ -174,19 +156,11 @@ openclaw onboard --gateway-token-ref-env GATEWAY_TOKEN --non-interactive
 
 #### 步骤四：渠道接入
 
-选择要连接的聊天平台：
-
-- WhatsApp、Telegram、Discord、Google Chat
-- Mattermost、Signal、BlueBubbles、iMessage
-
-> 可以跳过，后续用 `openclaw channels add` 随时添加。各渠道详细配置见[第四章 Chat Provider](/cn/adopt/chapter4/)。
+选择要连接的聊天平台（WhatsApp、Telegram、Discord 等）。可以跳过，后续用 `openclaw channels add` 随时添加，详见[第四章](/cn/adopt/chapter4/)。
 
 #### 步骤五：后台服务
 
-安装 Gateway 后台服务，确保重启后自动运行：
-
-- **macOS**：LaunchAgent（`ai.openclaw.gateway`）
-- **Linux / WSL2**：systemd 用户服务（`openclaw-gateway.service`）
+安装后台服务，开机自动启动 Gateway。macOS 用 LaunchAgent，Linux/WSL2 用 systemd。
 
 <details>
 <summary>后台服务与 SecretRef 的注意事项</summary>
@@ -199,16 +173,11 @@ openclaw onboard --gateway-token-ref-env GATEWAY_TOKEN --non-interactive
 
 #### 步骤六：健康检查与技能安装
 
-向导的最后阶段：
-
-1. **启动 Gateway** 并验证运行状态
-2. **安装推荐技能**和可选依赖
-
-> 想了解技能系统？详见[附录 D：技能开发与发布指南](/cn/appendix/appendix-d)。
+启动 Gateway、验证运行状态，安装推荐技能。详见[附录 D：技能开发与发布指南](/cn/appendix/appendix-d)。
 
 ### 1.4 Web 搜索配置
 
-向导还包含一个 **Web 搜索** 配置步骤，让龙虾能使用 `web_search` 工具。支持的搜索提供商：
+让龙虾能上网搜索，需要配置一个搜索提供商。支持的选项：
 
 | 提供商 | 说明 |
 |--------|------|
@@ -228,7 +197,7 @@ openclaw configure --section web
 
 ## 2. macOS 应用引导
 
-如果你使用 macOS 上的 OpenClaw.app（Control UI），首次启动会进入图形化引导流程。
+首次启动 OpenClaw.app（Control UI）时，会自动进入图形化引导。
 
 ### 2.1 引导步骤总览
 
@@ -244,11 +213,16 @@ openclaw configure --section web
 
 ### 2.2 安全须知（步骤 ③）
 
-应用会显示 OpenClaw 的信任模型说明：
+应用会展示 OpenClaw 的信任模型说明，阅读后点击继续即可。
 
-- **默认定位**：个人助手——一个可信操作者边界
-- **多用户场景**：需要拆分信任边界、最小化工具权限、参考[第十章 安全防护](/cn/adopt/chapter10/)
+<details>
+<summary>信任模型是什么意思？</summary>
+
+- **默认定位**：个人助手，一个可信操作者边界
+- **多用户场景**：需要拆分信任边界、最小化工具权限，参考[第十章 安全防护](/cn/adopt/chapter10/)
 - **本地新安装**默认使用 `tools.profile: "coding"`，保留文件系统和运行时工具
+
+</details>
 
 ### 2.3 Gateway 位置选择（步骤 ④）
 
@@ -286,25 +260,17 @@ macOS 应用会请求以下 TCC 权限：
 
 ### 2.5 CLI 安装（步骤 ⑥）
 
-应用可以通过 npm/pnpm 安装全局 `openclaw` CLI，这样终端命令和 LaunchAgent 定时任务都能正常工作。此步骤可选——如果你已经通过[第二章](/cn/adopt/chapter2/)安装了 CLI，可以跳过。
+安装全局 `openclaw` CLI，让终端命令和定时任务正常工作。已通过[第二章](/cn/adopt/chapter2/)安装过的可跳过。
 
 ### 2.6 Onboarding 对话（步骤 ⑦）
 
-完成设置后，应用会打开一个**专用的 Onboarding 对话会话**：
-
-- 龙虾会自我介绍并引导你探索功能
-- 这个对话与你的正常会话**分开**，不会干扰日常使用
-- Gateway 端首次运行时会执行 Bootstrapping（引导启动），初始化工作区文件
+设置完成后，龙虾会自我介绍并引导你探索功能。这是一个专用的引导会话，不影响日常使用。
 
 ---
 
 ## 3. 自定义模型提供商（Custom Provider）
 
-如果向导内置列表中没有你想用的提供商——比如自建的 API 网关、公司内部模型服务、或其他兼容 OpenAI/Anthropic 接口的服务——可以选择 **Custom Provider**。
-
-### 3.1 配置步骤
-
-在向导的模型选择环节，选择 **Custom Provider**，然后依次填写：
+向导列表里没有你的提供商？选 **Custom Provider**，依次填写：
 
 | 步骤 | 内容 | 示例 |
 |------|------|------|
@@ -348,15 +314,13 @@ macOS 应用会请求以下 TCC 权限：
 
 ## 4. 多智能体配置
 
-OpenClaw 支持在同一实例下运行**多个独立智能体**，每个智能体有自己的工作区、会话和认证配置。
+OpenClaw 支持在同一实例下运行多个独立智能体，每个智能体有自己的工作区、会话和渠道绑定。
 
 ### 4.1 添加智能体
 
 ```bash
 openclaw agents add <name>
 ```
-
-不带 `--workspace` 参数时会启动交互式向导。
 
 ### 4.2 智能体配置项
 
@@ -394,7 +358,7 @@ openclaw agents add worker-bot \
 openclaw configure
 ```
 
-> **与 `openclaw onboard` 的区别**：`configure` 用于修改现有配置，`onboard` 用于首次设置。两者流程类似，但 `configure` 不会重新安装后台服务。
+> `configure` 修改现有配置，`onboard` 用于首次设置；前者不会重新安装后台服务。
 
 ### 5.2 重置配置
 
@@ -406,17 +370,11 @@ openclaw onboard --reset
 openclaw onboard --reset --reset-scope full
 ```
 
-> ⚠️ `--reset` 会清除现有配置，请谨慎使用。如果只是想修改某项配置，用 `openclaw configure` 更安全。
+> ⚠️ `--reset` 会清除现有配置。只想改某项设置，用 `openclaw configure` 更安全。
 
 ### 5.3 配置异常处理
 
-如果配置文件损坏或包含过时的字段，向导会提示你先运行诊断：
-
-```bash
-openclaw doctor
-```
-
-`doctor` 命令会自动检测并修复常见问题，包括服务注册、配置格式和凭证有效性。详见[第八章 Doctor 诊断](/cn/adopt/chapter8/)。
+配置文件损坏时，运行 `openclaw doctor` 自动诊断并修复。详见[第八章](/cn/adopt/chapter8/)。
 
 <details>
 <summary>非交互模式（脚本化部署）</summary>
@@ -441,33 +399,28 @@ openclaw onboard \
 
 ## 6. 常见问题
 
-**Q1：向导配置的文件存在哪里？**
+**Q：配置文件存在哪里？**
 
-运行 `openclaw onboard` 后，系统会自动生成主配置文件 `~/.openclaw/openclaw.json`，你不需要手动创建。工作区文件在 `~/.openclaw/workspace/`。配置项详解见[附录 G：配置文件详解](/cn/appendix/appendix-g)。
+`~/.openclaw/openclaw.json`，工作区在 `~/.openclaw/workspace/`。详见[附录 G](/cn/appendix/appendix-g)。
 
-**Q2：跑完向导后最快的方式开始聊天是什么？**
+**Q：向导跑完，怎么马上开始聊天？**
 
-直接在终端聊天：
 ```bash
-openclaw chat
+openclaw chat        # 终端对话
+openclaw dashboard   # 浏览器 Dashboard（无需渠道配置）
 ```
 
-或打开浏览器 Dashboard（无需任何渠道配置）：
-```bash
-openclaw dashboard
-```
+详见[第十一章](/cn/adopt/chapter11/)。
 
-详见[第十一章 Web 界面与客户端](/cn/adopt/chapter11/)。
+**Q：提供商不在列表里怎么办？**
 
-**Q3：我用的模型提供商不在向导列表里怎么办？**
+选 **Custom Provider**，填入 API 地址和密钥。详见[本章第 3 节](#_3-自定义模型提供商-custom-provider)。
 
-选择 **Custom Provider**，填入提供商的 API 地址和密钥即可。支持 OpenAI 兼容和 Anthropic 兼容两种接口格式。详见[本章第 3 节](#_3-自定义模型提供商-custom-provider)。
+**Q：Remote 模式会改动远程主机吗？**
 
-**Q4：Remote 模式具体做了什么？**
+不会。它只配置本地客户端如何连接远程 Gateway（SSH 隧道或 Tailnet），远程主机不受影响。详见[第九章](/cn/adopt/chapter9/)。
 
-Remote 模式仅配置本地客户端连接远程 Gateway 的方式（SSH 隧道或 Tailnet 地址），**不会在远程主机上安装或修改任何东西**。远程主机的 Gateway 需要提前配置好。详见[第九章 远程访问与网络](/cn/adopt/chapter9/)。
+**Q：重新运行向导会覆盖现有配置吗？**
 
-**Q5：重新运行向导会覆盖我的现有配置吗？**
-
-不会。除非你显式选择 Reset 或传入 `--reset` 参数，向导会保留现有配置，只修改你选择更改的部分。
+不会，除非你传入 `--reset` 参数。
 

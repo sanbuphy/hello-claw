@@ -9,9 +9,11 @@ next:
 
 # 第一章 AutoClaw 一键安装
 
-> 本章带你用最快的方式拥有一个 AI 助手：下载 → 安装 → 对话，5 分钟搞定。
+> 5 分钟后，你将拥有一个会搜索、会浏览网页、会定时提醒你的 AI 助手——不需要写一行代码，不需要懂任何技术。
 
 ## 1. 安装
+
+就像装普通软件一样简单：
 
 1. 访问 [AutoClaw 官网](https://autoglm.zhipuai.cn/autoclaw)，下载安装包（macOS / Windows）
 2. 双击安装，打开 AutoClaw
@@ -49,7 +51,7 @@ next:
 对话时可以上传文件（点📎）或粘贴 URL，分身会自动读取和索引。上传的文件会出现在右侧 **Files** 边栏中。
 
 <details>
-<summary>四个预置分身的详细说明</summary>
+<summary>这四个分身分别适合做什么？</summary>
 
 **AutoClaw**——通用助手，什么都能聊、什么都能干。界面提示："Describe your goal. AutoClaw will execute step by step and stream back progress."
 
@@ -75,14 +77,14 @@ next:
 
 ## 3. Quick Setup：让分身认识你
 
-首次对话前会弹出 **Quick Setup** 卡片，花 30 秒填一下：
+首次对话前会弹出 **Quick Setup** 卡片。花 30 秒填一下，分身就知道你是谁、擅长什么：
 
 ![Quick Setup](/autoclaw-agent-quick-setup.png)
 
 填写你的名字、角色、给分身取个名字、选择专长领域，点 **Done** 即可。错过了也没关系——随时在对话中告诉分身，它会自己配好。
 
 <details>
-<summary>Quick Setup 完整字段说明</summary>
+<summary>每个字段填什么？</summary>
 
 | 字段 | 说明 | 示例 |
 |------|------|------|
@@ -98,14 +100,14 @@ next:
 
 </details>
 
-## 4. 免费额度用完了？
+## 4. 积分用完了？
 
-点击右上角 **Buy now** 购买积分加油包。
+点右上角 **Buy now** 购买积分包，按需充值，不强制订阅。
 
 ---
 
 <details>
-<summary>更多功能：头像定制</summary>
+<summary>如何给分身换一个专属头像？</summary>
 
 点击左下角头像，进入风格设置界面：
 
@@ -116,14 +118,14 @@ next:
 </details>
 
 <details>
-<summary>更多功能：创建新分身</summary>
+<summary>如何创建更多分身？</summary>
 
 点击左上角 **⊕** 创建新分身，可以重命名、换图标、置顶或删除。
 
 </details>
 
 <details>
-<summary>更多功能：接入飞书（IM Channels）</summary>
+<summary>想在飞书里直接和分身对话？</summary>
 
 左侧 **IM Channels** 标签页 → **Connect IM Channels** → 选择飞书（国内）或 Lark（海外），按页面上的"飞书后台配置指引"操作即可。
 
@@ -132,14 +134,14 @@ next:
 </details>
 
 <details>
-<summary>更多功能：定时任务（Cron Jobs）</summary>
+<summary>如何查看和管理定时任务？</summary>
 
 左侧 **Cron Jobs** 标签页显示所有定时任务。通过「监控」分身对话即可创建。
 
 </details>
 
 <details>
-<summary>更多功能：Preferences 精细设置</summary>
+<summary>想深度定制？Preferences 里有什么？</summary>
 
 点击左下角头像旁的设置图标（⚙），进入 Preferences 页面：
 

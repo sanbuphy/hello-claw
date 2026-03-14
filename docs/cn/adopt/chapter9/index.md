@@ -9,58 +9,40 @@ next:
 
 # 第九章 远程访问与网络
 
-> 本章介绍如何从其他设备远程访问你的 OpenClaw Gateway：SSH 隧道、Tailscale 组网、macOS 客户端配置和安全最佳实践。读完本章，你将能从任何地方安全地控制你的 Gateway。
+想在外面也能控制家里的龙虾？本章搞定远程访问。
 
-> **前置条件**：已完成[第八章 网关运维](/cn/adopt/chapter8/)，Gateway 已安装并正常运行。
+> **前置条件**：已完成[第八章 网关运维](/cn/adopt/chapter8/)，Gateway 正常运行。
 
-## 0. 为什么需要远程访问？
+Gateway 默认只在本机运行（`127.0.0.1:18789`）。要从其他设备访问，你需要一条"通道"。**两分钟版本：** 推荐 Tailscale，安装后一行命令搞定。
 
-Gateway 默认只监听本机回环地址（`127.0.0.1:18789`），这意味着只有运行 Gateway 的那台机器才能访问它。但在实际使用中，你经常需要：
+## 1. 选哪种方案？
 
-- **笔记本远程控制**：台式机 24 小时运行 Gateway，笔记本随时连接
-- **手机/平板接入**：iOS/Android 节点连接到家中或云端的 Gateway
-- **服务器部署**：Gateway 运行在 VPS 上，本地设备远程访问
+| 方案 | 适用场景 | 难度 |
+|------|---------|------|
+| **Tailscale 组网** | 多设备跨网络，体验最好 | ⭐⭐ |
+| **SSH 隧道** | 有 SSH 就能用，最通用 | ⭐ |
+| **LAN 直连** | 同一局域网内 | ⭐ |
 
-核心思路很简单：**Gateway 在哪台机器上运行，那台机器就是"大脑"**，其他设备都是通过网络连接到它的"遥控器"。
-
-## 1. 三种远程方案一览
-
-| 方案 | 适用场景 | 难度 | 推荐度 |
-|------|---------|------|--------|
-| **SSH 隧道** | 有 SSH 访问权限的任何环境 | ⭐ | 通用兜底 |
-| **Tailscale 组网** | 跨网络安全访问 | ⭐⭐ | 最推荐 |
-| **LAN 直连** | 同一局域网内 | ⭐ | 需配合认证 |
-
-> **简单原则**：如果你不确定用哪种，先用 SSH 隧道——它在任何有 SSH 的环境下都能工作。如果你需要更好的体验（自动 HTTPS、无需手动转发），用 Tailscale。
+不确定选哪个？**从 Tailscale 开始**——自动 HTTPS、无需手动转发、多设备共享。
 
 ## 2. SSH 隧道（最通用的方式）
 
-SSH 隧道的原理是把远程 Gateway 的端口"映射"到你的本地机器，让本地客户端以为 Gateway 就在本机运行。
-
-### 2.1 快速开始
-
-**Step 1：建立隧道**
+在咖啡厅想连回家里的 Gateway？一行命令建立隧道：
 
 ```bash
 ssh -N -L 18789:127.0.0.1:18789 user@远程主机IP
 ```
 
-> `-N` 表示只做端口转发，不执行远程命令。`18789` 是 Gateway 的默认端口。
-
-**Step 2：验证连接**
-
-打开另一个终端窗口：
+打开另一个终端验证：
 
 ```bash
-openclaw status        # 应显示远程 Gateway 的状态
-openclaw status --deep  # 深度健康检查
+openclaw status --deep
 ```
 
-如果看到 Gateway 状态输出，说明隧道已经通了。
+看到 Gateway 状态就说明通了。
 
-### 2.2 配置 SSH Config（推荐）
-
-每次输入完整命令很麻烦，可以在 SSH 配置文件中保存连接信息。
+<details>
+<summary>嫌每次输长命令麻烦？配置 SSH Config 简化</summary>
 
 编辑 `~/.ssh/config`，添加：
 
@@ -78,21 +60,15 @@ Host my-gateway
 ssh -N my-gateway
 ```
 
-### 2.3 免密码登录
-
-首次设置时，把你的公钥复制到远程主机：
+**免密登录**：把公钥复制到远程主机，以后不再输密码：
 
 ```bash
 ssh-copy-id -i ~/.ssh/id_rsa user@远程主机IP
 ```
 
-输入一次密码后，以后连接不再需要密码。
+</details>
 
-### 2.4 Gateway Token 认证
-
-即使通过 SSH 隧道连接，如果 Gateway 配置了认证（推荐），客户端仍需提供 token。
-
-设置 Gateway token 环境变量：
+**Token 认证**：如果 Gateway 开了认证，连接时还需要提供 token：
 
 ```bash
 # macOS
@@ -102,7 +78,7 @@ launchctl setenv OPENCLAW_GATEWAY_TOKEN "你的token"
 export OPENCLAW_GATEWAY_TOKEN="你的token"
 ```
 
-或者在配置文件中持久化远程连接信息：
+或者写入配置文件持久化：
 
 ```json5
 {
@@ -116,14 +92,10 @@ export OPENCLAW_GATEWAY_TOKEN="你的token"
 }
 ```
 
-> 当 Gateway 绑定在 loopback 时，URL 保持 `ws://127.0.0.1:18789`，SSH 隧道负责把流量转发到远程。
+> SSH 隧道让流量透明转发，URL 仍保持 `ws://127.0.0.1:18789`。
 
 <details>
-<summary>macOS 隧道自动启动（LaunchAgent）</summary>
-
-每次手动启动 SSH 隧道很麻烦，可以创建 macOS Launch Agent 实现开机自动启动。
-
-**创建 plist 文件**
+<summary>开机自动启动隧道（macOS LaunchAgent）</summary>
 
 保存为 `~/Library/LaunchAgents/ai.openclaw.ssh-tunnel.plist`：
 
@@ -149,39 +121,25 @@ export OPENCLAW_GATEWAY_TOKEN="你的token"
 </plist>
 ```
 
-**加载 Launch Agent**
+加载：
 
 ```bash
 launchctl bootstrap gui/$UID ~/Library/LaunchAgents/ai.openclaw.ssh-tunnel.plist
 ```
 
-隧道会：
-- 开机自动启动
-- 崩溃后自动重连
-- 在后台静默运行
-
-**常用管理命令**
+常用管理命令：
 
 ```bash
-# 检查隧道是否运行
-ps aux | grep "ssh -N my-gateway" | grep -v grep
-
-# 检查端口占用
-lsof -i :18789
-
-# 重启隧道
-launchctl kickstart -k gui/$UID/ai.openclaw.ssh-tunnel
-
-# 停止隧道
-launchctl bootout gui/$UID/ai.openclaw.ssh-tunnel
+ps aux | grep "ssh -N my-gateway" | grep -v grep  # 检查是否运行
+lsof -i :18789                                      # 检查端口
+launchctl kickstart -k gui/$UID/ai.openclaw.ssh-tunnel  # 重启
+launchctl bootout gui/$UID/ai.openclaw.ssh-tunnel       # 停止
 ```
 
 </details>
 
 <details>
-<summary>Linux 隧道自动启动（systemd）</summary>
-
-在 Linux 上可以用 systemd 实现自动启动。
+<summary>开机自动启动隧道（Linux systemd）</summary>
 
 创建 `~/.config/systemd/user/openclaw-tunnel.service`：
 
@@ -199,32 +157,20 @@ RestartSec=10
 WantedBy=default.target
 ```
 
-启用并启动：
-
 ```bash
 systemctl --user enable --now openclaw-tunnel
-systemctl --user status openclaw-tunnel  # 检查状态
+systemctl --user status openclaw-tunnel
 ```
 
 </details>
 
 ## 3. Tailscale 组网（推荐方案）
 
-[Tailscale](https://tailscale.com) 是一个零配置 VPN 工具，能让你的设备像在同一局域网一样互联。OpenClaw 内置了 Tailscale 集成，提供三种模式。
+[Tailscale](https://tailscale.com) 让你的所有设备像在同一局域网里——手机、笔记本、VPS 都能直接访问 Gateway，自动 HTTPS，无需手动转发端口。
 
-### 3.1 三种 Tailscale 模式
+### 3.1 最快上手：Tailscale Serve
 
-| 模式 | 说明 | 适用场景 |
-|------|------|---------|
-| `serve` | 通过 Tailscale Serve 暴露（tailnet 内部） | 个人使用，推荐 |
-| `funnel` | 通过 Tailscale Funnel 公开到互联网 | 需要公网访问 |
-| `off` | 不使用 Tailscale（默认） | 纯 SSH 或 LAN |
-
-另外还有一种不通过 Serve/Funnel 的 **直接绑定** 模式（`gateway.bind: "tailnet"`）。
-
-### 3.2 Tailscale Serve（推荐）
-
-最安全的方案：Gateway 保持 loopback 绑定，Tailscale 提供 HTTPS 加密和路由。
+在 `openclaw.json` 加两行：
 
 ```json5
 {
@@ -235,21 +181,24 @@ systemctl --user status openclaw-tunnel  # 检查状态
 }
 ```
 
-配置后访问：`https://<你的MagicDNS地址>/`
+重启 Gateway 后，用 tailnet 内任意设备访问：`https://<你的MagicDNS地址>/`
 
-> **Tailscale Serve 的优势**：自动 HTTPS 证书、tailnet 内免 token 认证（需开启 `allowTailscale`）、无需手动端口转发。
+CLI 一行命令等效：
+
+```bash
+openclaw gateway --tailscale serve
+```
+
+> **前置**：需先安装 Tailscale 并 `tailscale up` 登录，tailnet 启用 HTTPS。
 
 <details>
-<summary>免 Token 认证（Tailscale 身份验证）</summary>
+<summary>Serve 模式可以免 Token 吗？</summary>
 
-当 `tailscale.mode = "serve"` 且 `gateway.auth.allowTailscale: true` 时，Tailscale 会注入身份头（`tailscale-user-login`），Gateway 通过本地 Tailscale 守护进程验证请求者身份。
+可以。设置 `gateway.auth.allowTailscale: true` 后，tailnet 内的设备访问 Control UI 和 WebSocket **不需要 token**——Tailscale 身份头自动认证。
 
-这意味着 tailnet 内的设备访问 Control UI 和 WebSocket **不需要 token/password**。
+注意：`/v1/*`、`/tools/invoke` 等 HTTP API 端点**仍需 token 认证**。
 
-但注意：
-- **HTTP API 端点**（如 `/v1/*`、`/tools/invoke`）**仍需 token/password 认证**
-- 这种免 token 模式假设 Gateway 主机是可信的
-- 如果主机上可能运行不受信任的代码，应禁用此功能：
+如果主机上可能运行不可信代码，建议关闭：
 
 ```json5
 {
@@ -261,31 +210,10 @@ systemctl --user status openclaw-tunnel  # 检查状态
 
 </details>
 
-### 3.3 直接绑定 Tailnet IP
+<details>
+<summary>需要公网访问？用 Tailscale Funnel</summary>
 
-不使用 Serve/Funnel，让 Gateway 直接监听 Tailscale 分配的 IP：
-
-```json5
-{
-  gateway: {
-    bind: "tailnet",
-    auth: {
-      mode: "token",
-      token: "你的token",
-    },
-  },
-}
-```
-
-从其他 Tailnet 设备连接：
-- Control UI：`http://<tailscale-ip>:18789/`
-- WebSocket：`ws://<tailscale-ip>:18789`
-
-> 注意：这种模式下 `http://127.0.0.1:18789` 不可用。
-
-### 3.4 Tailscale Funnel（公网访问）
-
-Funnel 会把 Gateway 暴露到公共互联网。**必须配置密码认证**：
+Funnel 把 Gateway 暴露到公共互联网，**必须配置密码认证**：
 
 ```json5
 {
@@ -300,41 +228,45 @@ Funnel 会把 Gateway 暴露到公共互联网。**必须配置密码认证**：
 }
 ```
 
-> 建议使用环境变量 `OPENCLAW_GATEWAY_PASSWORD` 代替在配置文件中写明密码。
-
-**Funnel 限制**：
-- 需要 Tailscale v1.38.3+
-- 需要启用 MagicDNS 和 HTTPS
-- 只支持端口 443、8443、10000
-- macOS 需要使用开源版 Tailscale 客户端
-- **不注入身份头**，所以无法免 token 认证
-
-### 3.5 CLI 快捷命令
+CLI 等效：
 
 ```bash
-openclaw gateway --tailscale serve                   # 启用 Serve
-openclaw gateway --tailscale funnel --auth password   # 启用 Funnel
+openclaw gateway --tailscale funnel --auth password
 ```
 
-<details>
-<summary>Tailscale 前置条件</summary>
+> 密码建议用环境变量 `OPENCLAW_GATEWAY_PASSWORD`，不要写在配置文件里。
 
-- 安装 Tailscale CLI 并登录（`tailscale up`）
-- **Serve**：tailnet 需启用 HTTPS（CLI 会提示）
-- **Funnel**：需要 v1.38.3+、MagicDNS、HTTPS 和 funnel 节点属性
-- macOS Funnel 需要开源版 Tailscale app
-
-参考文档：
-- [Tailscale Serve 概览](https://tailscale.com/kb/1312/serve)
-- [Tailscale Funnel 概览](https://tailscale.com/kb/1223/tailscale-funnel)
+Funnel 限制：需要 Tailscale v1.38.3+、MagicDNS、HTTPS，只支持端口 443/8443/10000，macOS 需开源版客户端。
 
 </details>
 
-## 4. 常见部署架构
+<details>
+<summary>不用 Serve/Funnel，直接绑定 Tailnet IP</summary>
 
-### 架构一：云服务器 24 小时在线
+```json5
+{
+  gateway: {
+    bind: "tailnet",
+    auth: {
+      mode: "token",
+      token: "你的token",
+    },
+  },
+}
+```
 
-**适合场景**：笔记本经常合盖休眠，但需要 Gateway 始终在线。
+访问地址：`http://<tailscale-ip>:18789/`（注意：`127.0.0.1:18789` 此模式下不可用）
+
+</details>
+
+参考文档：[Tailscale Serve](https://tailscale.com/kb/1312/serve) · [Tailscale Funnel](https://tailscale.com/kb/1223/tailscale-funnel)
+
+<details>
+<summary>常见部署架构参考</summary>
+
+**架构一：VPS 24 小时在线，笔记本远程控制**
+
+笔记本经常合盖休眠？把 Gateway 跑在 VPS 或家庭服务器上：
 
 ![云服务器 24 小时在线部署架构：Gateway 部署在 VPS 上，笔记本通过 SSH 隧道远程连接](/OpenClaw云服务器.png)
 
@@ -351,30 +283,24 @@ B["你的笔记本
 B -->|SSH / Tailscale Tunnel| A
 ```
 
-推荐配置：
-- Gateway `bind: "loopback"`
-- 使用 Tailscale Serve 或 SSH 隧道访问
+推荐：Gateway `bind: "loopback"` + Tailscale Serve 或 SSH 隧道。
 
-### 架构二：台式机 + 笔记本
+---
 
-**适合场景**：台式机运行 Gateway，笔记本作为遥控器。
+**架构二：台式机 + 笔记本**
 
-macOS 用户可以使用 OpenClaw.app 的 **"Remote over SSH"** 模式：
+macOS 用户可直接用 OpenClaw.app 的 **"Remote over SSH"** 模式：Settings → General → "OpenClaw runs" → 选 "Remote over SSH"。App 自动管理 SSH 隧道。
 
-1. 打开 OpenClaw.app → Settings → General → "OpenClaw runs"
-2. 选择 "Remote over SSH"
-3. App 会自动管理 SSH 隧道，WebChat 和健康检查"开箱即用"
+---
 
-### 架构三：笔记本运行 Gateway，其他设备访问
+**架构三：笔记本是主力机，偶尔其他设备访问**
 
-**适合场景**：笔记本是主力机，偶尔需要从其他设备访问。
+用 Tailscale Serve 暴露 Control UI，Gateway 保持 loopback 绑定即可。
 
-- 从其他机器通过 SSH 隧道连接，或
-- 用 Tailscale Serve 暴露 Control UI，Gateway 保持 loopback
+</details>
 
-## 5. 消息流转路径
-
-理解消息如何在 Gateway 和节点之间流转，有助于排查远程访问问题：
+<details>
+<summary>消息是怎么从聊天软件流转到节点的？</summary>
 
 ```
 Telegram 消息
@@ -390,92 +316,74 @@ Gateway 通过 WebSocket 调用节点（node.* RPC）
 Gateway 回复 Telegram
 ```
 
-**关键点**：
-- 节点**不**运行 Gateway 服务，它们只是外围设备
-- 只有一个 Gateway 应该运行在一台主机上（除非使用 `--profile` 隔离）
-- macOS app 的"节点模式"只是通过 WebSocket 连接到 Gateway 的客户端
+关键点：节点不运行 Gateway，只是通过 WebSocket 连接的外围设备。一台主机只跑一个 Gateway（除非用 `--profile` 隔离）。
 
-## 6. 凭证与认证
+</details>
 
-远程访问时，正确配置凭证至关重要。Gateway 的凭证解析遵循严格的优先级顺序。
+## 4. 凭证与认证
 
-### 6.1 基本规则
+一句话规则：**显式参数（`--token`、`--password`）优先级最高，其次环境变量，最后配置文件。**
 
-- **显式凭证**（`--token`、`--password`）始终优先
-- **CLI `--url` 覆盖**：不会复用配置文件中的凭证，必须同时传 `--token` 或 `--password`
-- **环境变量 URL 覆盖**：只使用环境变量中的凭证
+用 `--url` 覆盖连接地址时，配置文件里的凭证不会自动带上，需同时传 `--token` 或 `--password`。
 
-### 6.2 本地模式凭证优先级
+<details>
+<summary>完整凭证优先级表</summary>
+
+**本地模式**：
 
 ```
 Token: --token > OPENCLAW_GATEWAY_TOKEN > gateway.auth.token > gateway.remote.token
 Password: --password > OPENCLAW_GATEWAY_PASSWORD > gateway.auth.password > gateway.remote.password
 ```
 
-### 6.3 远程模式凭证优先级
+**远程模式**：
 
 ```
 Token: gateway.remote.token > OPENCLAW_GATEWAY_TOKEN > gateway.auth.token
 Password: --password > OPENCLAW_GATEWAY_PASSWORD > gateway.remote.password > gateway.auth.password
 ```
 
-<details>
-<summary>凭证解析细节</summary>
-
-- `gateway.remote.token` / `gateway.remote.password` 是**客户端凭证来源**，不控制服务端认证
-- 本地调用路径在 `gateway.auth.*` 未设置时，可以回退到 `gateway.remote.*`
-- 如果 `gateway.auth.token` 通过 SecretRef 配置但解析失败，认证**直接失败**（不会回退到 remote，避免掩盖配置错误）
-- Remote probe/status 的 token 检查默认是严格的：只使用 `gateway.remote.token`，不回退本地 token
-- 旧版 `CLAWDBOT_GATEWAY_*` 环境变量仅用于兼容调用路径
+其他细节：
+- `gateway.remote.token` / `gateway.remote.password` 是**客户端凭证**，不控制服务端认证
+- `gateway.auth.token` 通过 SecretRef 配置但解析失败时，认证**直接失败**（不回退，避免掩盖配置错误）
+- Remote probe/status 严格使用 `gateway.remote.token`，不回退本地 token
+- 旧版 `CLAWDBOT_GATEWAY_*` 环境变量仅用于兼容
 
 </details>
 
-## 7. 安全最佳实践
+## 5. 安全最佳实践
 
-### 黄金规则
-
-> **保持 Gateway loopback 绑定，除非你确定需要对外暴露。**
-
-### 安全检查清单
+> **黄金规则：Gateway 保持 loopback 绑定，除非你确定需要对外暴露。**
 
 | 配置 | 建议 |
 |------|------|
 | Gateway 绑定 | `loopback` + SSH 或 Tailscale Serve（最安全） |
 | 非 loopback 绑定 | **必须**配置 token 或 password 认证 |
-| 明文 `ws://` | 仅限 loopback。私有网络需设置 `OPENCLAW_ALLOW_INSECURE_PRIVATE_WS=1` |
-| TLS 指纹锁定 | 远程 wss:// 连接用 `gateway.remote.tlsFingerprint` 固定证书 |
-| Tailscale Serve | 可用 `allowTailscale: true` 免 token，但 HTTP API 仍需认证 |
+| 明文 `ws://` | 仅限 loopback；私有网络需设 `OPENCLAW_ALLOW_INSECURE_PRIVATE_WS=1` |
+| TLS 指纹锁定 | 远程 `wss://` 用 `gateway.remote.tlsFingerprint` 固定证书 |
+| Tailscale Serve | 可 `allowTailscale: true` 免 token，HTTP API 仍需认证 |
 | Funnel | **必须**使用 password 认证（自动强制） |
-| 浏览器控制 | 视为 operator 权限——tailnet-only + 谨慎节点配对 |
+| 浏览器控制 | 视为 operator 权限——tailnet-only，谨慎节点配对 |
 
 <details>
-<summary>浏览器代理控制的安全注意</summary>
+<summary>跨机器控制浏览器的安全配置</summary>
 
-如果你在一台机器上运行 Gateway，但想在另一台机器上控制浏览器：
-
-- 在浏览器所在机器运行节点（node host），两台机器保持在同一 tailnet
-- Gateway 会通过 WebSocket 将浏览器操作代理到节点
-- **不需要**额外的 Serve URL 或控制服务器
-- **避免用 Funnel 做浏览器控制**——节点配对应视同 operator 权限
+在浏览器所在机器运行节点（node host），两台机器同在 tailnet。Gateway 通过 WebSocket 将浏览器操作代理到节点，**不需要**额外的 Serve URL。**避免用 Funnel 做浏览器控制**——节点配对权限等同 operator。
 
 </details>
 
-## 8. 故障排查
+<details>
+<summary>连不上？故障排查</summary>
 
-### 隧道连不上
+**SSH 隧道排查：**
 
 ```bash
-# 检查 SSH 隧道是否运行
-ps aux | grep "ssh -N" | grep -v grep
-
-# 检查端口是否被占用
-lsof -i :18789
-
-# 手动测试连接
-openclaw status
+ps aux | grep "ssh -N" | grep -v grep  # 隧道是否运行
+lsof -i :18789                          # 端口是否被占用
+openclaw status                         # 手动测试连接
 ```
 
-### 常见问题
+**常见问题：**
 
 | 症状 | 可能原因 | 解决方法 |
 |------|---------|---------|
@@ -485,7 +393,7 @@ openclaw status
 | Funnel 启动失败 | 未配置密码或版本过低 | 设置 `auth.mode: "password"` 并升级 Tailscale |
 | `--url` 参数认证失败 | `--url` 不复用配置文件凭证 | 同时传 `--token` 或 `--password` |
 
-### 验证远程连接
+**验证远程连接：**
 
 ```bash
 # 通过 SSH 隧道
@@ -495,6 +403,8 @@ openclaw status --deep
 # 通过 Tailscale
 openclaw gateway status --url ws://<tailscale-ip>:18789 --token 你的token
 ```
+
+</details>
 
 ## 小结
 
