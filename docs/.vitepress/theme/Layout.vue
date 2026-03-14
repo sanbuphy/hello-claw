@@ -727,7 +727,7 @@ const tickerItems = computed(() => [...recommendedSections.value, ...recommended
 const lobsterUniversityRecommendedSections = [
   { track: '龙虾大学', title: '龙虾大学：金融简报实战', summary: '盘前信息聚合、风险提醒、人工复核三段式工作流示例。', link: '/cn/university/finance' },
   { track: '龙虾大学', title: '龙虾大学：邮件提醒实战', summary: '紧急邮件识别、分级提醒、自动生成后续待办。', link: '/cn/university/email-reminder' },
-  { track: '龙虾大学', title: '龙虾大学：Vibe Coding 实战', summary: '手机飞书发需求，龙虾写代码提 PR，Copilot 审查，一句话合并。', link: '/cn/university/vibe-coding' },
+  { track: '龙虾大学', title: '龙虾大学：Vibe Coding 实战', summary: '对话描述需求，龙虾写代码提 PR，Copilot 审查，一句话合并。', link: '/cn/university/vibe-coding' },
   { track: '领养龙虾', title: '第 4 章：自动化任务入门', summary: '定时提醒、自动化报告、周期性工作流，从“会聊”到“会做”。', link: '/cn/adopt/chapter4' },
   { track: '领养龙虾', title: '第 5 章：Skills 技能系统', summary: '理解技能层次、安装市场技能、开发自定义技能并调试。', link: '/cn/adopt/chapter5' },
   { track: '领养龙虾', title: '第 7 章：多平台与外部服务', summary: '打通邮件、日历、数据库和浏览器自动化。', link: '/cn/adopt/chapter7' },
@@ -755,9 +755,9 @@ const lobsterUniversityCollections = [
   },
   {
     badge: '实战场景',
-    title: 'OpenClaw 用在 Vibe Coding：手机写代码全闭环',
-    summary: '从飞书聊天到 GitHub PR，用手机完成需求→编码→审查→合并的完整开发闭环。',
-    chips: ['手机编码', 'GitHub PR', 'Copilot 审查'],
+    title: 'OpenClaw 用在 Vibe Coding：对话即开发',
+    summary: '从飞书对话到 GitHub PR，用自然语言完成需求→编码→审查→合并的完整开发闭环。',
+    chips: ['对话驱动', 'GitHub PR', 'Copilot 审查'],
     link: '/cn/university/vibe-coding',
   },
 ]
