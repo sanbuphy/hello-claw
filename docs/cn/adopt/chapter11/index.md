@@ -1,259 +1,287 @@
-# 第十一章 故障排查与优化
+---
+prev:
+  text: '第10章 安全防护与威胁模型'
+  link: '/cn/adopt/chapter10'
+next:
+  text: '附录 A：学习资源汇总'
+  link: '/cn/appendix/appendix-a'
+---
 
-使用 OpenClaw 的过程中难免会遇到各种问题。本章汇总了常见问题的解决方案、性能调优技巧和社区资源。
+# 第十一章 Web 界面与客户端
 
-> **阅读建议**：第 1 节"常见问题速查"建议每个人都过一遍，遇到问题时能快速定位。后面的日志诊断、性能优化等内容可以等遇到具体问题时再展开阅读。
+> 终端太硬核？本章介绍龙虾的各种图形界面——网页版、桌面版、终端 UI，总有一款适合你。
 
-## 1. 常见问题速查
+> **前置条件**：已完成[第二章 OpenClaw 手动安装](/cn/adopt/chapter2/)，Gateway 正常运行。
 
-### 1.1 安装问题
+## 0. 选一款你喜欢的方式
 
-| 问题 | 原因 | 解决方案 |
-|------|------|---------|
-| `npm install -g openclaw` 失败 | Node.js 版本过低 | 升级到 Node.js 22+ |
-| 权限错误 | npm 全局安装权限不足 | 使用 `sudo` 或配置 npm prefix |
-| 网络超时 | npm 源不可访问 | 切换为淘宝源：`npm config set registry https://registry.npmmirror.com` |
+四种原生界面，全部连接同一个 Gateway，可以随意切换或同时使用：
 
-### 1.2 API 连接问题
+| 界面 | 怎么打开 | 一句话描述 | 平台 |
+|------|---------|-----------|------|
+| **Dashboard** | `openclaw dashboard` | 管理配置、查对话历史的控制台 | 全平台 |
+| **WebChat** | 浏览器访问 Gateway 地址 | 零配置，开箱即聊 | 全平台 |
+| **Control UI** | 打开 OpenClaw.app | macOS 原生桌面体验 | macOS |
+| **TUI** | `openclaw chat` | 终端里直接聊，最轻量 | 全平台 |
 
-| 问题 | 原因 | 解决方案 |
-|------|------|---------|
-| `401 Unauthorized` | API Key 无效或过期 | 检查并更新 API Key |
-| `429 Too Many Requests` | 达到 API 调用限制 | 减少并发任务，或升级 API 套餐 |
-| 连接超时 | 网络问题（尤其访问海外 API） | 配置网络代理（HTTP_PROXY 环境变量）或改用国内提供商（如硅基流动，参考第一章） |
-| `503 Service Unavailable` | API 服务暂时不可用 | 等待恢复，或切换到备用模型 |
-| 助理"失忆"（忘记之前交代的信息） | 长对话超出上下文窗口，原生记忆压缩丢失细节 | 将关键信息写入 USER.md 或 MEMORY.md（详见[第九章](/cn/adopt/chapter9/)）；长程场景可安装 [OpenViking](https://github.com/volcengine/OpenViking) 记忆插件 |
+**不知道选哪个？** 想管配置 → Dashboard；想聊天 → WebChat；macOS 用户 → Control UI；SSH 远程 → TUI。
 
-### 1.3 渠道接入问题
+## 1. Web Dashboard（控制面板）
 
-| 问题 | 原因 | 解决方案 |
-|------|------|---------|
-| Telegram 无响应 | Bot Token 错误或网络问题 | 检查 Token，确认代理配置 |
-| 飞书消息不回复 | 权限未开通或未完成配对 | 检查飞书开放平台权限设置 |
-| QQ 断线 | NapCat WebSocket 断开 | 检查 NapCat 运行状态，重新登录 |
+Dashboard 是 OpenClaw 的主力管理界面，运行在浏览器里，涵盖配置、历史对话、渠道状态、技能、定时任务等一切。
 
-### 1.4 技能问题
-
-| 问题 | 原因 | 解决方案 |
-|------|------|---------|
-| `clawhub install` 失败 | 网络问题或技能名称错误 | 检查网络，确认技能名称（slug）正确 |
-| 技能安装后不可用 | 缺少系统依赖 | 检查 SKILL.md 中的 requirements |
-| API Key 配置后仍报错 | openclaw.json 格式错误 | 用 `openclaw config` 交互式配置 |
-
-<details>
-<summary>展开：日志诊断</summary>
-
-## 2. 日志诊断
-
-### 2.1 查看日志
-
-<!-- TODO: 补充 openclaw logs 终端输出截图（实时日志流示例） -->
+### 启动
 
 ```bash
-# 查看实时日志（持续输出）
-openclaw logs --follow
-
-# 查看最近 100 条日志
-openclaw logs --limit 100
-
-# 以 JSON 格式输出（方便用 jq 等数据处理工具过滤，新手可忽略此选项）
-openclaw logs --limit 100 --json
-
-# 纯文本输出（无颜色）
-openclaw logs --limit 50 --plain
+openclaw dashboard
 ```
 
-### 2.2 日志级别
+浏览器自动打开 `http://localhost:18789`，没自动打开就手动输入这个地址。
 
-```jsonc
-// openclaw.json 中的 logging 配置
+![Web 控制面板浏览器界面](./images/openclaw-dashboard-browser.png)
+
+<details>
+<summary>Dashboard 各功能区一览</summary>
+
+| 功能区 | 说明 |
+|--------|------|
+| **Config** | 可视化编辑 `openclaw.json`，保存即生效 |
+| **Conversations** | 查看对话历史、消息详情、工具调用记录 |
+| **Channels** | 查看已连接渠道的状态 |
+| **Sessions** | 管理活跃会话和上下文 |
+| **Skills** | 浏览和管理已安装的技能 |
+| **Cron** | 查看和管理定时任务 |
+| **Logs** | 实时查看 Gateway 日志流 |
+
+Config 标签页的编辑器修改的就是 `~/.openclaw/openclaw.json`，和 `openclaw config set <key> <value>` 效果完全一样（详见[第八章 配置管理](/cn/adopt/chapter8/#_2-配置管理)）。
+
+</details>
+
+### 远程访问
+
+Gateway 在远程服务器上时，用 SSH 隧道把端口转到本地（详见[第九章 远程访问](/cn/adopt/chapter9/)）：
+
+```bash
+# 在本地电脑执行
+ssh -N -L 18789:127.0.0.1:18789 user@远程服务器
+# 然后浏览器打开 http://localhost:18789
+```
+
+<details>
+<summary>Dashboard 认证</summary>
+
+如果 Gateway 配置了认证（`token` 或 `password` 模式），打开 Dashboard 时会要求输入凭证：
+
+- **Token 模式**：输入 `OPENCLAW_GATEWAY_TOKEN` 环境变量的值
+- **Password 模式**：输入 `OPENCLAW_GATEWAY_PASSWORD` 环境变量的值
+- **Tailscale 模式**：如果启用了 `allowTailscale: true`，从 Tailscale 网络内访问无需密码
+
+```json5
+// 认证配置示例
 {
-  "logging": {
-    "level": "info",
-    "file": true,
-    "maxSize": "50mb",
-    "maxFiles": 10
-  }
+  gateway: {
+    auth: {
+      mode: "token",             // token | password
+      token: "${OPENCLAW_GATEWAY_TOKEN}",
+      allowTailscale: true,      // Tailscale 设备免认证
+    },
+  },
 }
 ```
 
-开发调试时可以临时开启 debug 级别：
-
-```bash
-openclaw config set logging.level debug
-openclaw gateway restart
-```
+> **安全提醒**：Dashboard 拥有完整的管理权限。务必设置认证，尤其是 Gateway 不在 loopback 上运行时（详见[第十章 安全防护](/cn/adopt/chapter10/)）。
 
 </details>
 
 <details>
-<summary>展开：性能优化</summary>
+<summary>更改 Dashboard 端口</summary>
 
-## 3. 性能优化
+如果默认端口 `18789` 与其他服务冲突：
 
-### 3.1 响应速度
-
-**减少活跃技能**：每个技能增加约 200-500 tokens 的上下文。10 个技能可能增加 3000-5000 tokens。
-
-```bash
-# 查看当前活跃技能数量
-clawhub list --active
-
-# 禁用不常用的技能
-clawhub uninstall rarely-used-skill
-```
-
-**使用更快的模型**：对于简单任务，Haiku 比 Opus 快 5-10 倍。
-
-**启用缓存**：
-
-```json
+```json5
 {
-  "cache": {
-    "enabled": true,
-    "ttl": 3600,
-    "maxSize": "100mb"
-  }
+  gateway: {
+    port: 19000,   // 改为其他端口
+  },
 }
 ```
 
-### 3.2 内存优化
+或启动时指定：
 
 ```bash
-# 查看 OpenClaw 内存使用
-openclaw status --verbose
-
-# 清理对话历史缓存
-openclaw cleanup --conversations --older-than 7d
-
-# 清理技能缓存
-openclaw cleanup --skill-cache
+openclaw gateway --port 19000
 ```
 
-### 3.3 Token 优化
+改完后 Dashboard 地址变为 `http://localhost:19000`。
 
-```bash
-# 查看每次调用的 Token 消耗
-openclaw usage --detail
+</details>
 
-# 按技能统计
-openclaw usage --by-skill --period month
-```
+## 2. WebChat（内置 Web 聊天）
+
+Gateway 内置的聊天界面，零配置、开箱即用——不需要注册任何平台账号。
+
+### 打开
+
+浏览器访问 `http://localhost:18789`，或在 Dashboard 中点击 **Chat** 入口。
+
+WebChat 最适合**首次测试**和**技能调试**。发送 `/status` 可快速检查 Gateway 状态。
+
+<details>
+<summary>WebChat 与 Telegram / Discord 怎么选？</summary>
+
+| 对比维度 | WebChat | Telegram | Discord |
+|---------|---------|----------|---------|
+| 注册要求 | 无 | 需创建 Bot | 需创建 Bot |
+| 公网要求 | 不需要 | Webhook 需要 | 不需要 |
+| 移动端 | 浏览器访问 | 原生 App | 原生 App |
+| 群聊 | 不支持 | 支持 | 支持 |
+| 消息推送 | 需保持页面打开 | 系统通知 | 系统通知 |
+
+需要手机推送或群聊，搭配 Telegram 或 Discord（详见[第四章](/cn/adopt/chapter4/)）。
 
 </details>
 
 <details>
-<summary>展开：数据备份与恢复</summary>
+<summary>第三方 Web 聊天客户端</summary>
 
-## 4. 数据备份与恢复
+社区客户端（如 **PinchChat**：[github.com/pinchchat/pinchchat](https://github.com/pinchchat/pinchchat)）通过 Gateway 的 HTTP API 与 OpenClaw 通信。使用前需启用端点：
 
-### 4.1 需要备份的内容
-
-```
-~/.openclaw/
-├── openclaw.json        # 配置文件（API Key、渠道设置）
-├── workspace/           # 工作区（详见第九章第 7 节）
-│   ├── IDENTITY.md      # 助理身份（名字、风格）
-│   ├── SOUL.md          # 人格设定和行为准则
-│   ├── USER.md          # 你的个人信息和偏好
-│   ├── AGENTS.md        # 工作流程和操作规范
-│   ├── TOOLS.md         # 环境专属信息（服务器、设备等）
-│   ├── MEMORY.md        # 长期记忆
-│   ├── HEARTBEAT.md     # 定期巡检清单
-│   ├── BOOT.md          # 网关启动时执行的任务
-│   ├── BOOTSTRAP.md     # 首次运行初始化（完成后自动删除）
-│   └── memory/          # 每日工作日志
-├── skills/              # 已安装技能及配置
-├── cron/                # 定时任务
-└── conversations/       # 对话历史
+```json5
+{
+  gateway: {
+    http: {
+      endpoints: {
+        chatCompletions: { enabled: true },
+      },
+    },
+  },
+}
 ```
 
-### 4.2 备份命令
-
-```bash
-# 完整备份
-tar -czf openclaw-backup-$(date +%Y%m%d).tar.gz ~/.openclaw/
-
-# 只备份配置和工作区（不含对话历史）
-tar -czf openclaw-config-$(date +%Y%m%d).tar.gz \
-  ~/.openclaw/openclaw.json \
-  ~/.openclaw/workspace/ \
-  ~/.openclaw/skills/ \
-  ~/.openclaw/cron/
-```
-
-### 4.3 恢复
-
-```bash
-# 恢复备份
-tar -xzf openclaw-backup-20260307.tar.gz -C ~/
-
-# 重启服务
-openclaw gateway restart
-```
+将客户端 API 地址指向 `http://127.0.0.1:18789/v1/chat/completions`，以 Gateway 认证 token 作为 API Key（详见[第八章 HTTP API 端点](/cn/adopt/chapter8/#_8-http-api-端点)）。
 
 </details>
+
+## 3. Control UI（macOS 桌面客户端）
+
+macOS 专属的原生桌面应用（OpenClaw.app）：菜单栏常驻、原生通知、无需终端即可管理 Gateway。
+
+### 安装
+
+通过 [AutoClaw](/cn/adopt/chapter1/) 安装时通常已包含。也可单独安装：
+
+```bash
+brew install --cask openclaw
+```
+
+在「应用程序」中找到 **OpenClaw.app**，双击打开。
+
+### 连接远程 Gateway
+
+Settings → General → "OpenClaw runs" → 选 **Remote over SSH** → 填入服务器地址。App 自动管理 SSH 隧道，WebChat 开箱即用（详见[第九章 远程访问](/cn/adopt/chapter9/)）。
 
 <details>
-<summary>展开：升级指南</summary>
+<summary>Control UI 和 Dashboard 有什么区别？</summary>
 
-## 5. 升级指南
+| 对比维度 | Control UI | Dashboard |
+|---------|-----------|-----------|
+| 平台 | 仅 macOS | 全平台（浏览器） |
+| 安装 | 需下载 App | Gateway 内置 |
+| 系统集成 | 菜单栏、通知、快捷键 | 无 |
+| 远程连接 | 内置 SSH 管理 | 需手动建隧道 |
+| 推荐人群 | macOS 重度用户 | 跨平台、远程管理 |
 
-### 5.1 升级 OpenClaw
-
-```bash
-# 查看当前版本
-openclaw --version
-
-# 升级到最新版
-npm update -g openclaw
-
-# Docker 用户
-docker pull ghcr.io/openclaw/openclaw:latest
-docker compose up -d
-```
-
-### 5.2 升级注意事项
-
-- 升级前备份 `~/.openclaw/` 目录
-- 查看 Release Notes 了解破坏性变更
-- 大版本升级后可能需要重新配置部分技能
+两者可以同时用——Control UI 管理 Gateway 生命周期，Dashboard 做细粒度配置。
 
 </details>
 
-## 6. 社区资源
+## 4. TUI（终端聊天）
 
-### 6.1 官方资源
+不需要浏览器，不需要 GUI，直接在终端里聊。SSH 远程、服务器、Docker 容器——任何有终端的地方都能用。
 
-| 资源 | 地址 |
-|------|------|
-| 官方文档 | https://openclaw.ai/docs |
-| GitHub 仓库 | https://github.com/openclaw/openclaw |
-| ClawHub 技能市场 | https://github.com/openclaw/clawhub |
-| Discord 社区 | https://discord.gg/openclaw |
+### 启动
 
-### 6.2 中文社区
+```bash
+openclaw chat
+```
 
-| 资源 | 地址 |
-|------|------|
-| 本教程在线版 | https://datawhalechina.github.io/hello-claw |
-| Datawhale 社区 | https://github.com/datawhalechina |
+交互模式，输入消息回车发送。或者单次发送：
 
-### 6.3 获取帮助
+```bash
+openclaw agent --message "帮我写一个 Python hello world"
+```
 
-遇到问题时的排查步骤：
+<details>
+<summary>TUI 进阶用法：指定 Agent、管道输入</summary>
 
-1. 先查本章的"常见问题速查"
-2. 搜索 GitHub Issues
-3. 到 Discord 社区提问
-4. 提交 GitHub Issue（附上日志和复现步骤）
+**指定思考级别**：
 
----
+```bash
+openclaw agent --message "分析这段代码的安全性" --thinking high
+```
 
-恭喜你完成了"领养 Claw"的全部内容！现在你已经掌握了 OpenClaw 的安装配置、移动端接入、自动化任务、技能系统、外部服务集成、生产部署、多模型优化和实际应用场景。
+**指定 Agent**（多 Agent 配置详见[附录 G](/cn/appendix/appendix-g)）：
 
-如果你想进一步了解 OpenClaw 的内部原理，或者从零构建自己的 AI Agent，请继续阅读第二部分"构建 Claw"。
+```bash
+openclaw agent --message "查看今天的日程" --agent home
+openclaw agent --message "审查这个 PR" --agent work
+```
 
----
+**管道输入**：
 
-**下一步**：[第二部分：构建 Claw](/cn/build/)
+```bash
+# 让龙虾解释一段代码
+cat script.py | openclaw agent --message "解释这段代码"
+
+# 让龙虾分析日志
+openclaw logs --limit 50 --plain | openclaw agent --message "有什么异常？"
+```
+
+</details>
+
+## 5. 界面选择指南
+
+| 你想做什么 | 推荐 |
+|-----------|------|
+| 第一次安装，确认龙虾能用 | `openclaw chat` |
+| 日常管理配置 | Dashboard |
+| 在浏览器里聊天 | WebChat |
+| SSH 远程聊天 | `openclaw chat` |
+| macOS 全功能体验 | Control UI |
+| 调试技能 | WebChat + Dashboard（查工具调用） |
+| 脚本里调用龙虾 | `openclaw agent --message` |
+| macOS 桌面 | Control UI + Dashboard |
+| Windows / Linux 桌面 | Dashboard + WebChat |
+| 云服务器 / Docker | TUI |
+| 手机 / 平板 | WebChat（浏览器） |
+
+四种界面连接同一个 Gateway，可以同时用——WebChat 里的对话在 Dashboard 的 Conversations 里也能查到。
+
+## 6. 常见问题
+
+**Dashboard 显示连接失败？**
+
+先确认 Gateway 在跑：`openclaw gateway status`，没跑就 `openclaw gateway restart`。
+
+**端口 18789 被占用？**
+
+```bash
+# macOS / Linux
+ss -tlnp | grep 18789
+# Windows
+netstat -ano | findstr 18789
+```
+
+换端口方法见上文"更改 Dashboard 端口"折叠块。
+
+**WebChat 发消息没有回复？**
+
+依次检查：① `openclaw status` 确认 Gateway 和 Agent 正常；② `openclaw logs --follow` 发一条消息看有无报错；③ 确认 API Key 有效（详见[第五章](/cn/adopt/chapter5/)）。
+
+**远程服务器上能用 WebChat 吗？**
+
+可以。SSH 隧道后在本地浏览器访问 `http://localhost:18789`；Tailscale 用户直接用 Tailscale IP 访问（详见[第九章](/cn/adopt/chapter9/)）。
+
+**Control UI 只有 macOS？**
+
+是的。Windows / Linux 用户用 Dashboard，或社区桌面客户端 [ClawX](/cn/adopt/chapter1/)。

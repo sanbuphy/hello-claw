@@ -1,489 +1,397 @@
-# 第四章 自动化任务入门
-
-> **前提**：本章假设你已完成第一章的安装配置。定时任务的通知功能需要配合第三章的消息渠道（飞书/Telegram/QQ），但不是必须的——没有配置渠道时，任务仍会执行，只是结果只能在 Web 控制面板查看。
-
-OpenClaw 的定时任务（Cron）功能让 AI 可以主动工作，而不是被动等待你的指令。你可以让它每天早上发送简报，每小时检查服务器状态，或者每周生成工作总结。这些任务会在 Gateway 中持久化存储，即使重启也不会丢失。
-
-## 1. 什么是 OpenClaw Cron
-
-OpenClaw Cron 不是传统的 Linux cron，而是一个让 AI 按时间表主动执行任务的系统。它运行在 Gateway 中，支持三种调度方式：
-
-- **at**（一次性）：在指定时间执行一次
-- **every**（固定间隔）：每隔一段时间执行
-- **cron**（表达式）：使用 cron 表达式精确控制（如 `0 8 * * *` 表示每天早上 8 点，格式为"分 时 日 月 周"）
-
-任务可以在主会话中执行，也可以在独立会话中运行（推荐），避免干扰正常对话。
-
-## 2. 创建定时任务
-
-### 2.1 通过对话创建
-
-最简单的方式是直接告诉 OpenClaw：
-
-```
-每天早上 8 点给我发送今日简报，包括天气、日程和重要邮件
-```
-
-OpenClaw 会自动创建定时任务并保存。你可以用自然语言描述任务，它会理解并配置。
-
-### 2.2 使用命令行
-
-```bash
-# 添加定时任务（--name 必填，--channel 指定发送目标）
-openclaw cron add --name "每日简报" --cron "30 7 * * *" --message "发送今日简报" --channel "telegram:chat:123456789"
-
-# 添加间隔任务
-openclaw cron add --name "健康检查" --every 10m --message "检查服务器状态" --channel "qqbot:c2c:your_openid"
-
-# 添加一次性任务（20 分钟后执行）
-openclaw cron add --name "提醒我" --at 20m --message "该休息了" --channel "telegram:chat:123456789"
-
-# 查看所有任务
-openclaw cron list
-
-# 编辑任务
-openclaw cron edit <jobId>
-
-# 删除任务
-openclaw cron rm <jobId>
-```
-
-> **为什么需要 `--channel`？** 定时任务是 OpenClaw **主动推送**的——它需要知道把结果发到哪里。这和你在 QQ/Telegram 里跟机器人聊天不同：聊天时机器人知道该回复谁（被动响应），但定时任务没有"发起者"，所以必须用 `--channel` 明确指定发送目标。
->
-> **`--channel` 格式**：
-> - Telegram 私聊：`telegram:chat:<你的ChatID>`（首次配对时机器人会告诉你 Chat ID，详见[第三章 3.3 配对验证](/cn/adopt/chapter3/#_3-3-配对验证)）
-> - QQ 私聊：`qqbot:c2c:<openid>`
-> - QQ 群聊：`qqbot:group:<groupid>`
->
-> 如果不指定 `--channel`，任务仍会执行，但结果只能在 Web 控制面板（`openclaw dashboard`）中查看，不会推送到任何聊天渠道。
-
-> **其他常用选项**：`--cron` 设置 cron 表达式（如 `"30 7 * * *"` 表示每天 7:30），`--every` 设置间隔（如 `10m`、`1h`），`--at` 设置一次性定时（如 `20m` 或 ISO 时间），`--announce` 将结果发送到聊天。完整选项运行 `openclaw cron add --help` 查看。
-
-## 3. 实战案例
-
-### 3.1 每日简报
-
-```
-每天早上 7:30 给我发送今日简报到 Telegram：
-1. 北京天气和空气质量
-2. 今天的日历事件
-3. 未读邮件数量
-4. GitHub 上的新通知
-```
-
-OpenClaw 会创建一个独立会话的定时任务，每天准时执行。
-
-### 3.2 服务器监控
-
-```
-每 10 分钟检查服务器状态，如果 CPU 超过 90% 或内存超过 85% 就发送告警到飞书
-```
-
-这比传统监控更灵活，你可以随时调整阈值和告警规则。
-
-### 3.3 周报生成
-
-```
-每周五下午 5 点生成本周工作总结：
-- 统计 Git 提交次数和代码行数
-- 列出完成的 Jira 任务
-- 生成 Markdown 格式周报
-- 发送到飞书工作群
-```
-
-### 3.4 数据备份
-
-```
-每天凌晨 2 点备份数据库到 S3，完成后通知我
-```
-
-### 3.5 定期清理
-
-```
-每周日凌晨 3 点清理 30 天前的日志文件，保留错误日志
-```
-
-## 4. 高级配置
-
-> **定时任务的两层配置**：
->
-> - **全局设置**在 `openclaw.json` 的 `cron` 字段中，控制是否启用、最大并发数等：
->   ```json
->   {
->     "cron": {
->       "enabled": true,
->       "maxConcurrentRuns": 2
->     }
->   }
->   ```
-> - **具体任务**通过 CLI（`openclaw cron add --name "任务名" --cron "表达式" --message "内容"`）或对话创建，由 Gateway 存储在 `~/.openclaw/cron/jobs.json` 中。手动编辑该文件需要先停止 Gateway。
->
-> 下面的 JSON 示例展示的是 `jobs.json` 中的任务定义格式，仅供理解参考，**推荐通过对话或 CLI 创建任务**。
-
-<details>
-<summary>展开：高级配置（条件执行、任务链、环境变量、错误处理）</summary>
-
-### 4.1 条件执行
-
-有时你希望任务只在特定条件下执行。可以在 prompt 中添加判断逻辑：
-
-```json
-// jobs.json 任务定义格式（推荐通过 CLI 或对话创建）
-{
-  "cron": {
-    "jobs": [
-      {
-        "name": "disk_alert",
-        "schedule": "*/30 * * * *",
-        "prompt": "检查磁盘使用率，如果超过 80% 就发送告警到 Telegram，否则不做任何操作",
-        "enabled": true
-      }
-    ]
-  }
-}
-```
-
-OpenClaw 会智能地理解这个条件，只有在磁盘使用率超过 80% 时才会发送消息。这比传统的脚本更灵活，因为你不需要写 if-else 逻辑，只需要用自然语言描述条件即可。
-
-你还可以设置更复杂的条件：
-
-```json
-{
-  "cron": {
-    "jobs": [
-      {
-        "name": "smart_backup",
-        "schedule": "0 2 * * *",
-        "prompt": "检查数据库大小，如果超过 1GB 就执行完整备份，否则只备份增量数据。备份完成后，如果是工作日就发送通知到飞书，如果是周末就发送到 Telegram",
-        "enabled": true
-      }
-    ]
-  }
-}
-```
-
-### 4.2 任务链
-
-多个任务可以组合成工作流：
-
-```json
-{
-  "cron": {
-    "jobs": [
-      {
-        "name": "weekly_report",
-        "schedule": "0 17 * * 5",
-        "prompt": "1. 读取本周 Git 提交记录\n2. 从 Jira 获取已完成任务\n3. 生成 Markdown 格式周报\n4. 发送到飞书工作群",
-        "enabled": true
-      }
-    ]
-  }
-}
-```
-
-OpenClaw 会按顺序执行每个步骤，前一步的结果会传递给下一步。如果某一步失败，后续步骤会自动跳过，并记录失败原因。
-
-你也可以设置任务依赖关系：
-
-```json
-{
-  "cron": {
-    "jobs": [
-      {
-        "name": "backup_db",
-        "schedule": "0 2 * * *",
-        "prompt": "备份数据库到本地",
-        "enabled": true
-      },
-      {
-        "name": "upload_backup",
-        "schedule": "0 3 * * *",
-        "depends_on": "backup_db",
-        "prompt": "将备份文件上传到云存储",
-        "enabled": true
-      }
-    ]
-  }
-}
-```
-
-这样 `upload_backup` 只有在 `backup_db` 成功执行后才会运行。
-
-### 4.3 环境变量
-
-如果任务需要访问外部服务，可以在配置中设置环境变量：
-
-```json
-{
-  "cron": {
-    "jobs": [
-      {
-        "name": "backup_db",
-        "schedule": "0 2 * * *",
-        "env": {
-          "DB_HOST": "localhost",
-          "DB_NAME": "myapp",
-          "S3_BUCKET": "my-backups"
-        },
-        "prompt": "备份数据库到 S3：\n1. 使用 mysqldump 导出数据库\n2. 压缩文件\n3. 上传到 S3\n4. 删除本地临时文件",
-        "enabled": true
-      }
-    ]
-  }
-}
-```
-
-环境变量会在任务执行时注入到 OpenClaw 的运行环境中。这样可以避免在 prompt 中硬编码敏感信息，也方便在不同环境（开发、测试、生产）使用不同的配置。
-
-你还可以在全局配置中设置通用的环境变量：
-
-```json
-{
-  "cron": {
-    "global_env": {
-      "TIMEZONE": "Asia/Shanghai",
-      "NOTIFICATION_CHANNEL": "telegram"
-    },
-    "jobs": [
-      {
-        "name": "morning_brief",
-        "schedule": "0 8 * * *",
-        "prompt": "生成今日简报并发送到 ${NOTIFICATION_CHANNEL}",
-        "enabled": true
-      }
-    ]
-  }
-}
-```
-
-### 4.4 错误处理和重试
-
-定时任务可能因为网络问题、服务不可用等原因失败。你可以配置重试策略：
-
-```json
-{
-  "cron": {
-    "jobs": [
-      {
-        "name": "api_sync",
-        "schedule": "0 */1 * * *",
-        "prompt": "从 API 同步数据到本地数据库",
-        "retry": {
-          "max_attempts": 3,
-          "delay": 60
-        },
-        "on_failure": {
-          "notify": true,
-          "channel": "telegram"
-        },
-        "enabled": true
-      }
-    ]
-  }
-}
-```
-
-如果任务失败，OpenClaw 会等待 60 秒后重试，最多重试 3 次。如果所有重试都失败，会发送通知到 Telegram。
-
-</details>
-
-## 5. 管理定时任务
-
-### 5.1 查看任务状态
-
-```bash
-openclaw cron list
-```
-
-会显示所有任务的 ID、名称、调度方式、下次/上次执行时间、状态等信息：
-
-![openclaw cron list 终端输出](/openclaw-cron-list.png)
-
-> **字段说明**：`ID` 是任务唯一标识（后续管理任务时会用到），`Schedule` 显示调度类型和参数，`Next` 是距下次执行的时间，`Status` 为 `idle`（空闲等待中）或 `running`（正在执行）。
-
-查看某个任务的执行历史（需要指定任务 ID，可从 `cron list` 获取）：
-
-```bash
-# 查看任务的执行历史（--id 为任务 ID）
-openclaw cron runs --id 309d8d42-8f61-404b-abb2-c4f301999197
-```
-
-### 5.2 手动触发
-
-测试任务时不想等到定时时间，可以手动触发：
-
-```bash
-openclaw cron run 每日简报
-```
-
-OpenClaw 会立即执行这个任务，并实时显示执行过程和结果。这对于调试任务配置非常有用。
-
-### 5.3 暂停和恢复
-
-临时禁用某个任务：
-
-```bash
-openclaw cron disable 每日简报
-```
-
-恢复：
-
-```bash
-openclaw cron enable 每日简报
-```
-
-或者直接在 `~/.openclaw/cron/jobs.json` 对应条目中设置 `"enabled": false`（参见本章第 4 节的配置说明）。如果你要出差一周，可以临时禁用所有非关键任务，避免不必要的通知。
-
-### 5.4 查看执行日志
-
-查看某个任务的执行历史：
-
-```bash
-openclaw cron runs --id <任务ID>
-```
-
-会显示该任务的执行记录，包括开始时间、状态和结果。任务 ID 可从 `openclaw cron list` 获取。如果需要更详细的日志，可以使用 `openclaw logs --follow` 查看实时网关日志。
-
-<details>
-<summary>展开：更多实战案例（服务器监控、自动化测试、数据同步、内容发布、智能提醒）</summary>
-
-## 6. 进阶实战案例
-
-### 6.1 服务器监控
-
-```json
-// jobs.json 任务定义格式（推荐通过 CLI 或对话创建）
-{
-  "cron": {
-    "jobs": [
-      {
-        "name": "server_monitor",
-        "schedule": "*/10 * * * *",
-        "prompt": "检查服务器状态：\n- CPU 使用率超过 90% 时告警\n- 内存使用率超过 85% 时告警\n- 磁盘空间低于 10GB 时告警\n发送结果到 Telegram",
-        "enabled": true
-      }
-    ]
-  }
-}
-```
-
-这个任务每 10 分钟检查一次服务器状态，只有在出现问题时才会发送通知。相比传统的监控系统，这种方式更灵活，你可以随时调整告警阈值，不需要修改复杂的配置文件。
-
-### 6.2 自动化测试
-
-```json
-{
-  "cron": {
-    "jobs": [
-      {
-        "name": "nightly_test",
-        "schedule": "0 1 * * *",
-        "prompt": "运行完整测试套件：\n1. 拉取最新代码\n2. 安装依赖\n3. 运行测试\n4. 生成覆盖率报告\n5. 如果失败，发送详细日志到飞书",
-        "enabled": true
-      }
-    ]
-  }
-}
-```
-
-每天凌晨 1 点自动运行测试，确保代码质量。如果测试失败，团队成员第二天上班就能看到详细的错误报告。
-
-### 6.3 数据同步
-
-```json
-{
-  "cron": {
-    "jobs": [
-      {
-        "name": "sync_orders",
-        "schedule": "*/5 * * * *",
-        "env": {
-          "API_KEY": "xxxxx",
-          "DB_HOST": "localhost"
-        },
-        "prompt": "从电商平台 API 获取最近 5 分钟的新订单，写入本地数据库，如果有新订单就发送通知",
-        "retry": {
-          "max_attempts": 3,
-          "delay": 30
-        },
-        "enabled": true
-      }
-    ]
-  }
-}
-```
-
-每 5 分钟同步一次订单数据，确保本地数据库和线上保持一致。如果 API 调用失败，会自动重试 3 次。
-
-### 6.4 内容发布
-
-```json
-{
-  "cron": {
-    "jobs": [
-      {
-        "name": "auto_publish",
-        "schedule": "0 9,14,18 * * *",
-        "prompt": "从内容库中随机选择一篇文章，发布到微信公众号、知乎、小红书，记录发布结果",
-        "enabled": true
-      }
-    ]
-  }
-}
-```
-
-每天 9 点、14 点、18 点自动发布内容，保持账号活跃度。OpenClaw 会智能地选择合适的内容，避免重复发布。
-
-### 6.5 智能提醒
-
-```json
-{
-  "cron": {
-    "jobs": [
-      {
-        "name": "meeting_reminder",
-        "schedule": "0 8 * * 1-5",
-        "prompt": "读取今天的日历事件，如果有会议就提前 30 分钟提醒我，包含会议主题、时间、参会人员",
-        "enabled": true
-      }
-    ]
-  }
-}
-```
-
-工作日早上 8 点检查今天的日程，有会议就提前提醒。比手机自带的日历提醒更智能，因为可以根据会议重要性调整提醒时间。
-
-</details>
-
-## 7. 最佳实践
-
-**合理设置执行频率**：不要让任务执行得太频繁，否则会消耗大量 API token。一般来说，监控类任务 5-10 分钟一次即可，数据同步 15-30 分钟，报告生成每天或每周一次。
-
-**使用条件判断减少通知**：不要每次执行都发送通知，只在有重要信息时才通知。比如监控任务只在出现问题时告警，而不是每次都报告"一切正常"。
-
-**设置超时时间**：对于可能执行很久的任务，设置超时时间避免卡死：
-
-```json
-{
-  "cron": {
-    "jobs": [
-      {
-        "name": "long_task",
-        "schedule": "0 2 * * *",
-        "timeout": 3600,
-        "prompt": "执行耗时的数据处理任务",
-        "enabled": true
-      }
-    ]
-  }
-}
-```
-
-**分离关键任务和非关键任务**：把重要的任务（如备份、监控）和不重要的任务（如内容发布）分开配置，这样可以在需要时单独禁用非关键任务。
-
-**定期检查任务执行情况**：每周查看一次任务执行统计，确保所有任务都正常运行。可以设置一个"健康检查"任务，每天汇总所有任务的执行情况。
-
+---
+prev:
+  text: '第3章 初始配置向导'
+  link: '/cn/adopt/chapter3'
+next:
+  text: '第5章 模型管理'
+  link: '/cn/adopt/chapter5'
 ---
 
-**下一步**：[第五章 Skills 技能系统](/cn/adopt/chapter5/)
+# 第四章 聊天平台接入
 
+接完这章，你就能在手机上跟龙虾对话了。
+
+> **AutoClaw 用户**：飞书扫码即完成接入，[可跳过本章](/cn/adopt/chapter1/)。
+
+## 0. 支持哪些聊天平台？
+
+OpenClaw 支持几乎所有主流聊天软件，文字消息全渠道可用。
+
+| 渠道 | 说明 | 安装方式 |
+|------|------|---------|
+| **飞书 / Lark** | WebSocket 长连接；企业协作首选 | 内置 |
+| **WhatsApp** | 全球最流行；Baileys 库，需 QR 配对 | 内置 |
+| **Telegram** | Bot API（grammY）；支持群聊，API 最开放 | 内置 |
+| **Discord** | Bot API + Gateway；服务器、频道、私信 | 内置 |
+| **Slack** | Bolt SDK；工作区应用 | 内置 |
+| **Signal** | signal-cli；注重隐私 | 内置 |
+| **Google Chat** | Google Chat API；HTTP webhook | 内置 |
+| **iMessage** | BlueBubbles（推荐）或旧版 imsg CLI | 内置 |
+| **IRC** | 经典 IRC 服务器；频道 + 私信 | 内置 |
+| **WebChat** | Gateway 内置 Web 聊天界面 | 内置 |
+| **QQ** | QQ 开放平台 Bot API | 插件 |
+| **LINE** | LINE Messaging API | 插件 |
+| **Matrix** | Matrix 开放协议 | 插件 |
+| **Mattermost** | Bot API + WebSocket | 插件 |
+| **Microsoft Teams** | Bot Framework；企业支持 | 插件 |
+| **Nostr** | 去中心化协议 NIP-04 | 插件 |
+| **Twitch** | IRC 连接 | 插件 |
+| **Zalo** | Zalo Bot API（越南） | 插件 |
+
+<details>
+<summary>多个平台可以同时接入吗？</summary>
+
+可以。OpenClaw 会按来源自动路由消息，飞书处理工作、Telegram 做个人助理，共享同一个 AI 大脑。
+
+</details>
+
+本章以**飞书**为例——国内办公场景首选，深度集成文档、日历、多维表格，Telegram 配置更简单但国内需代理。
+
+## 1. 前置准备
+
+- 已完成 [第二章](/cn/adopt/chapter2/) 的安装（`openclaw status` 显示正常）
+- 拥有飞书账号（个人账号即可，无需企业管理员权限）
+
+## 2. 创建飞书应用
+
+### 第一步：登录飞书开放平台
+
+访问 [飞书开放平台](https://open.feishu.cn/app)，使用飞书账号登录。
+
+![飞书开放平台首页](./images/lark.png)
+
+<details>
+<summary>用的是国际版 Lark？</summary>
+
+访问 [Lark Open Platform](https://open.larksuite.com/app)，后续配置中需设置 `domain: "lark"`。
+
+</details>
+
+### 第二步：创建企业自建应用
+
+点击"创建企业自建应用"，填写名称（如"OpenClaw 助理"）和描述，点击"创建"。
+
+### 第三步：获取应用凭证
+
+进入"凭证与基础信息"，复制 **App ID**（格式 `cli_xxx`）和 **App Secret**，妥善保存。
+
+![飞书应用凭证页面](./images/lark-credential.png)
+
+### 第四步：启用机器人能力
+
+进入"添加应用能力" → "机器人"，点击"添加"。
+
+![添加应用能力页面](./images/lark-app.png)
+
+> **必须先做这步**：否则下一步导入权限时，消息相关权限无法开通。
+
+### 第五步：配置权限
+
+进入"权限管理"，点击"批量导入"，粘贴下方 JSON：
+
+![飞书权限管理页面](./images/lark-authentication.png)
+
+```json
+{
+  "scopes": {
+    "tenant": [
+      "application:application:self_manage",
+      "application:bot.menu:write",
+      "cardkit:card:read",
+      "cardkit:card:write",
+      "contact:contact.base:readonly",
+      "contact:user.employee_id:readonly",
+      "docs:document.content:read",
+      "docx:document:readonly",
+      "event:ip_list",
+      "im:chat",
+      "im:chat.members:bot_access",
+      "im:chat:read",
+      "im:chat:update",
+      "im:message",
+      "im:message.group_at_msg:readonly",
+      "im:message.group_msg",
+      "im:message.p2p_msg:readonly",
+      "im:message.pins:read",
+      "im:message.pins:write_only",
+      "im:message.reactions:read",
+      "im:message.reactions:write_only",
+      "im:message:readonly",
+      "im:message:recall",
+      "im:message:send_as_bot",
+      "im:message:send_multi_users",
+      "im:message:send_sys_msg",
+      "im:message:update",
+      "im:resource",
+      "sheets:spreadsheet",
+      "wiki:wiki:readonly"
+    ],
+    "user": [
+      "base:app:copy",
+      "base:app:create",
+      "base:app:read",
+      "base:app:update",
+      "base:field:create",
+      "base:field:delete",
+      "base:field:read",
+      "base:field:update",
+      "base:record:create",
+      "base:record:delete",
+      "base:record:retrieve",
+      "base:record:update",
+      "base:table:create",
+      "base:table:delete",
+      "base:table:read",
+      "base:table:update",
+      "base:view:read",
+      "base:view:write_only",
+      "board:whiteboard:node:create",
+      "board:whiteboard:node:read",
+      "calendar:calendar.event:create",
+      "calendar:calendar.event:delete",
+      "calendar:calendar.event:read",
+      "calendar:calendar.event:reply",
+      "calendar:calendar.event:update",
+      "calendar:calendar.free_busy:read",
+      "calendar:calendar:read",
+      "contact:contact.base:readonly",
+      "contact:user.base:readonly",
+      "contact:user.employee_id:readonly",
+      "contact:user:search",
+      "docs:document.comment:create",
+      "docs:document.comment:read",
+      "docs:document.comment:update",
+      "docs:document.media:download",
+      "docs:document:copy",
+      "docx:document:create",
+      "docx:document:readonly",
+      "docx:document:write_only",
+      "drive:drive.metadata:readonly",
+      "drive:file:download",
+      "drive:file:upload",
+      "im:chat.members:read",
+      "im:chat:read",
+      "im:message",
+      "im:message.group_msg:get_as_user",
+      "im:message.p2p_msg:get_as_user",
+      "im:message:readonly",
+      "offline_access",
+      "search:docs:read",
+      "search:message",
+      "space:document:delete",
+      "space:document:move",
+      "space:document:retrieve",
+      "task:comment:read",
+      "task:comment:write",
+      "task:task:read",
+      "task:task:write",
+      "task:task:writeonly",
+      "task:tasklist:read",
+      "task:tasklist:write",
+      "wiki:node:copy",
+      "wiki:node:create",
+      "wiki:node:move",
+      "wiki:node:read",
+      "wiki:node:retrieve",
+      "wiki:space:read",
+      "wiki:space:retrieve",
+      "wiki:space:write_only"
+    ]
+  }
+}
+```
+
+> 这一包权限涵盖消息收发、云文档、多维表格、日历、任务等完整能力。
+
+<details>
+<summary>这些权限分别做什么？</summary>
+
+| 权限类别 | 代表权限 | 用途 |
+|---------|---------|------|
+| **应用管理（application:）** | `application:application:self_manage`、`application:bot.menu:write` | 应用自管理、机器人菜单配置 |
+| **消息卡片（cardkit:）** | `cardkit:card:read`、`cardkit:card:write` | 读写消息卡片 |
+| **消息（im:）** | `im:message`、`im:message:send_as_bot`、`im:resource` | 收发消息、图片、文件 |
+| **群聊（im:chat）** | `im:chat`、`im:chat.members:bot_access` | 群聊管理、成员访问 |
+| **联系人（contact:）** | `contact:user.base:readonly`、`contact:user.employee_id:readonly` | 获取用户基础信息 |
+| **云文档（docx:/docs:）** | `docx:document:create`、`docs:document.content:read` | 创建和读取飞书文档 |
+| **电子表格（sheets:）** | `sheets:spreadsheet` | 操作飞书电子表格 |
+| **多维表格（base:）** | `base:record:create`、`base:table:read` | 操作多维表格数据 |
+| **日历（calendar:）** | `calendar:calendar.event:create`、`calendar:calendar.event:read` | 管理日程 |
+| **任务（task:）** | `task:task:read`、`task:task:write` | 创建和管理飞书任务 |
+| **知识库（wiki:）** | `wiki:node:read`、`wiki:wiki:readonly` | 读写飞书知识库 |
+| **云空间（drive:/space:）** | `drive:file:upload`、`drive:file:download` | 上传下载文件 |
+| **白板（board:）** | `board:whiteboard:node:create`、`board:whiteboard:node:read` | 读写飞书白板 |
+| **搜索（search:）** | `search:docs:read`、`search:message` | 搜索文档和消息 |
+| **事件（event:）** | `event:ip_list` | 事件推送 IP 白名单 |
+
+如果你只需要基础聊天功能，最少只需 `im:message`、`im:message.p2p_msg:readonly`、`im:message.group_at_msg:readonly`、`im:message:send_as_bot`、`im:resource` 这几个消息相关权限即可。但建议导入完整权限以获得最佳体验。
+
+</details>
+
+导入后点击"申请开通"确认。企业管理员可直接通过，否则需联系管理员审核。
+
+### 第六步：配置事件订阅
+
+> **注意顺序**：请先完成下方[第 3 步](#_3-在-openclaw-中添加飞书渠道)（添加渠道并启动网关），再回来做这一步，否则长连接保存会失败。
+
+进入"事件与回调" → "事件配置"：
+
+![事件与回调页面](./images/lark-event.png)
+
+1. 选择"**使用长连接接收事件**"
+2. 添加事件：`im.message.receive_v1`
+
+<details>
+<summary>为什么用长连接而不是 Webhook？</summary>
+
+Webhook 需要公网 IP，长连接（WebSocket）由 OpenClaw 主动连飞书——不需要公网 IP、不需要域名、家用网络就能用。
+
+</details>
+
+### 第七步：发布应用
+
+进入"版本管理与发布"，点击"创建版本"，填写版本号后提交发布申请。管理员审批通过即生效（你本人是管理员可直接通过）。
+
+![版本管理与发布页面](./images/lark-version.png)
+
+## 3. 在 OpenClaw 中添加飞书渠道
+
+回到终端，运行：
+
+```bash
+openclaw channels add
+```
+
+选择"Feishu/Lark"，输入 App ID 和 App Secret，其余保持默认。添加后重启网关：
+
+```bash
+openclaw gateway restart
+openclaw gateway status
+```
+
+<details>
+<summary>手动编辑配置文件（高级）</summary>
+
+编辑 `~/.openclaw/openclaw.json`（Windows：`C:\Users\你的用户名\.openclaw\openclaw.json`）：
+
+```json
+{
+  "channels": {
+    "feishu": {
+      "enabled": true,
+      "connectionMode": "websocket",
+      "dmPolicy": "pairing",
+      "accounts": {
+        "main": {
+          "appId": "cli_xxx",
+          "appSecret": "你的App Secret"
+        }
+      }
+    }
+  }
+}
+```
+
+修改后运行 `openclaw gateway restart` 生效。
+
+</details>
+
+> 完成这步后，回到飞书开放平台完成[第六步（事件订阅）](#第六步-配置事件订阅)。
+
+## 4. 配对与首次对话
+
+在飞书中找到你的机器人，发送"你好"。机器人会回复一个 **8 位配对码**：
+
+![飞书配对码提示界面](./images/lark-pairing.jpg)
+
+<details>
+<summary>为什么要配对？</summary>
+
+防止陌生人滥用你的机器人——每次对话都消耗你的 API 额度。新用户第一次发消息时会收到配对码，只有你批准后才能正常对话。配对码 1 小时过期。
+
+</details>
+
+在终端批准：
+
+```bash
+openclaw pairing approve feishu <配对码>
+```
+
+例如：`openclaw pairing approve feishu 6KKG7C7K`。也可在 Web 控制面板（`openclaw dashboard`）中点击批准。
+
+配对成功后，飞书里的龙虾就能回你了。试试：
+
+```
+你好，请介绍一下你自己
+```
+
+## 5. 群聊中使用
+
+把机器人拉进飞书群，**@机器人** 触发回复。
+
+<details>
+<summary>群聊访问控制</summary>
+
+OpenClaw 通过 `groupPolicy` 控制群聊行为：
+
+| 策略 | 行为 |
+|------|------|
+| `"open"` | 允许所有群聊，仍需 @提及才回复 |
+| `"allowlist"` | 仅允许白名单中的群（默认） |
+| `"disabled"` | 禁用所有群聊消息 |
+
+配置示例：
+
+```bash
+# 允许所有群聊
+openclaw config set channels.feishu.groupPolicy "open"
+
+# 设置某个群不需要@就回复
+openclaw config set channels.feishu.groups.<群ID>.requireMention false
+```
+
+群聊中每个群拥有独立的会话——群里的对话不会影响你和机器人的私聊记录。
+
+</details>
+
+<details>
+<summary>私聊访问策略（dmPolicy）</summary>
+
+`dmPolicy` 控制谁能通过私聊使用你的机器人：
+
+| 策略 | 行为 |
+|------|------|
+| `"pairing"` | 默认。新用户需配对码批准 |
+| `"allowlist"` | 仅允许 `allowFrom` 列表中的用户 |
+| `"open"` | 允许所有人（需在 `allowFrom` 中设置 `"*"`） |
+| `"disabled"` | 禁用私聊 |
+
+</details>
+
+## 6. 常见问题
+
+**事件订阅保存失败？**
+
+先确认网关已运行（`openclaw gateway status`）。长连接模式要求网关在线才能注册。
+
+**机器人没有回复？**
+
+按顺序排查：
+1. `openclaw status` — 网关是否运行
+2. `openclaw pairing list feishu` — 是否已完成配对
+3. `openclaw logs --follow` — 查看实时日志定位错误
+4. `openclaw gateway restart` — 重启重试
+
+**权限审核不通过？**
+
+你本人是管理员的话，进入飞书管理后台 → "工作台" → "应用审核"，找到应用点击"通过"。
+
+![应用审核页面](./images/lark-review.png)
+
+**配置修改后不生效？**
+
+`openclaw gateway restart`。更多配置项见[附录 G](/cn/appendix/appendix-g)。
+
+**群聊 @了机器人没反应？**
+
+检查 `groupPolicy` 是否为 `"disabled"` 或 `"allowlist"`（后者需将群 ID 加入白名单）。

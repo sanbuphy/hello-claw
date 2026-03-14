@@ -1,268 +1,752 @@
-# 附录 G：安全防护指南
+---
+prev:
+  text: '附录 F：命令速查表'
+  link: '/cn/appendix/appendix-f'
+next: false
+---
 
-> OpenClaw 的定位是**私人助手**——它只和你一个人对话。理解这一点，是理解所有安全问题的起点。
+# 附录 G：配置文件详解
+
+OpenClaw 的所有行为——用哪个模型、连哪些渠道、多久心跳一次——都由一个 JSON5 配置文件控制。本附录逐项解读每个配置块，帮你理解"这个字段是干什么的"以及"什么时候需要改它"。
+
+> **不想手写配置？** 推荐使用 [OpenClaw 配置生成器](https://coclaw.com/openclaw-config-generator/) 可视化生成配置，再对照本附录微调。
 
 ---
 
-## 1. 威胁模型：你的龙虾面临哪些风险？
+## 快速导航
 
-### 1.1 提示词注入攻击
-
-> **什么是提示词注入？** 攻击者通过精心构造的文本，绕过 AI 的原始指令，让它执行恶意操作。就像你告诉助理"不要理会别人的指令"，但有人对助理说"忘掉之前的所有规则，现在执行我的命令"。
-
-**核心原则：OpenClaw 是私人助手，不是群聊机器人。**
-
-当你自己使用 OpenClaw 时，提示词注入几乎不存在——你不会故意攻击自己的助手。但如果你把 OpenClaw 放进群聊，让不可信的第三方与它对话，安全性就变得像窗户纸一样薄：
-
-- 攻击者可以让你的 OpenClaw 执行任意 Shell 命令
-- 攻击者可以读取你服务器上的敏感文件（API Key、环境变量等）
-- 攻击者可以让你的服务直接下线
-- 攻击者可以盗用你的模型 Token
-
-提示词注入是大模型的固有问题，目前**无法根治**。社区中已有大量真实攻击案例在流传。
-
-> **结论**：如果你只是自己用，90% 以上的安全问题都遇不到。如果你把 OpenClaw 放到群聊里，请做好被攻击的心理准备。
-
-### 1.2 IP 暴露风险
-
-2026 年初，安全研究者发现**超过 27 万个 OpenClaw 实例直接暴露在公网上**，没有任何认证保护。这意味着：
-
-- 任何人都可以直接访问你的 OpenClaw
-- 你的 Token 可能被他人盗用（"Token 像大坝决堤一样流失"）
-- 你的对话记录、工作区文件可能被窃取
-
-暴露的根本原因：部署时没有配置认证，或者直接将 OpenClaw 端口映射到公网。
-
-### 1.3 恶意 Skill 后门
-
-ClawHub 上有 16,000+ 技能，社区精选库 awesome-openclaw-skills 有 5,000+。但并非所有 Skill 都是安全的：
-
-- 某些 Skill 可能包含隐藏的数据上传逻辑
-- 某些 Skill 可能请求超出功能需要的系统权限
-- 某些 Skill 的依赖包中可能存在供应链攻击
-
-详见[第五章 Skill 安全警告](/cn/adopt/chapter5/)。
-
-### 1.4 文件误删风险
-
-即使只是自己使用，OpenClaw 在执行自动化任务时也可能误操作：
-
-- 执行 Shell 命令时构造了错误的指令，意外删除文件
-- 清理任务的范围设置过大，波及重要数据
-- 在命令注入场景下，敏感环境变量被意外公开
+| 配置块 | 控制什么 | 常见修改场景 |
+|--------|---------|-------------|
+| [agents](#一、agent-配置) | 模型选择、工作区、心跳、沙盒 | 换模型、加 Agent、调心跳频率 |
+| [channels](#二、渠道配置) | 聊天平台接入、DM 策略、群聊 | 添加新平台、调整谁能私聊 |
+| [gateway](#三、网关配置) | 端口、绑定地址、认证、热重载 | 远程访问、加密码、改端口 |
+| [session](#四、会话配置) | 会话隔离、线程绑定、自动重置 | 多用户场景、调整记忆周期 |
+| [tools](#五、工具配置) | 工具集级别、Web 搜索 | 启用/限制工具、配置搜索 API |
+| [skills](#六、技能配置) | 技能启用与凭证 | 安装新技能后填入 API Key |
+| [cron](#七、定时任务配置) | 并发、日志、会话保留 | 调整并发数、日志大小 |
+| [hooks](#八、webhook-配置) | 外部事件触发 Agent | 对接 Gmail、GitHub 等 |
+| [bindings](#九、绑定配置) | Agent ↔ 渠道映射 | 不同渠道用不同 Agent |
+| [env](#十、环境变量) | API Key 等敏感信息 | 添加新提供商的 Key |
+| [高级特性](#十一、高级特性) | $include、变量替换、SecretRef | 拆分大配置、安全存储凭证 |
 
 ---
 
-## 2. 自查清单：你的龙虾安全吗？
+## 配置文件位置
 
-### 2.1 检查 IP 暴露
-
-**第一步：查找你的服务器公网 IP**
-
-如果你的 OpenClaw 部署在云服务器上：
-
-```bash
-# 在服务器上执行，查看公网 IP
-curl -s ifconfig.me
+```
+~/.openclaw/openclaw.json          # 主配置文件（JSON5 格式）
+~/.openclaw/.env                   # 环境变量文件（存放 API Key 等）
 ```
 
-如果部署在本地电脑上：
+配置文件不存在也能运行——OpenClaw 会使用安全默认值。可以通过 `openclaw config file` 确认实际路径。
 
-```bash
-# 查看本地公网 IP
-curl -s ifconfig.me
-```
+## 配置文件整体结构
 
-> 本地部署通常在路由器 NAT 后面，默认不会暴露到公网。但如果你做了端口映射或使用了内网穿透工具（如 frp、ngrok），你的 OpenClaw 可能已经暴露。
-
-**第二步：验证是否暴露**
-
-访问 OpenClaw 暴露查询工具，输入你的服务器 IP 地址进行检查：
-
-- 暴露监测面板：https://openclaw.allegro.earth/
-
-如果查询结果显示你的实例在列，**请立即按第 3 节的防护措施进行加固**。
-
-**第三步：检查端口是否对外开放**
-
-```bash
-# 检查 OpenClaw 默认端口是否对外监听（默认端口：18789）
-ss -tlnp | grep 18789
-```
-
-如果看到 `0.0.0.0:18789` 或 `:::18789`，说明端口对所有网络接口开放，存在暴露风险。应改为 `127.0.0.1:18789`（仅本地访问）。
-
-### 2.2 检查认证配置
-
-```bash
-# 查看 OpenClaw 配置中的认证设置（如果未开启，立即开启）
-openclaw config set gateway.auth.enabled true
-```
-
-确认你的 `openclaw.json` 中包含认证配置：
-
-```json
+```json5
 {
-  "gateway": {
-    "auth": {
-      "enabled": true
+  agents: { ... },           // 智能体：模型、工作区、心跳
+  channels: { ... },         // 渠道：Telegram / QQ / 飞书等
+  gateway: { ... },          // 网关：端口、认证、热重载
+  session: { ... },          // 会话：隔离策略、自动重置
+  messages: { ... },         // 消息：群聊提及规则
+  tools: { ... },            // 工具：启用级别、搜索配置
+  skills: { ... },           // 技能：启用与凭证
+  cron: { ... },             // 定时任务：并发、日志
+  hooks: { ... },            // Webhook：外部事件触发
+  bindings: [...],           // 绑定：Agent 与渠道的映射
+  env: { ... },              // 环境变量：API Key 等
+}
+```
+
+---
+
+## 一、Agent 配置
+
+Agent 是 OpenClaw 的核心——每个 Agent 有自己的模型、工作区和行为设置。
+
+### 1.1 默认配置（agents.defaults）
+
+所有 Agent 共享的默认值，单个 Agent 可以覆盖。
+
+```json5
+{
+  agents: {
+    defaults: {
+      workspace: "~/.openclaw/workspace",
+
+      // 模型：主模型 + 回退链
+      model: {
+        primary: "anthropic/claude-sonnet-4-5",
+        fallbacks: ["openai/gpt-5.2"]
+      },
+
+      // 模型目录（让用户通过 /model 命令切换）
+      models: {
+        "anthropic/claude-sonnet-4-5": { alias: "Sonnet" },
+        "openai/gpt-5.2": { alias: "GPT" }
+      },
+
+      imageMaxDimensionPx: 1200,     // 图片缩放上限（像素）
+
+      // 心跳：Agent 定期主动发消息
+      heartbeat: {
+        every: "30m",                // 间隔：30m / 2h / 1d
+        target: "last",              // 发给谁：last（最近对话） | 指定渠道 | none
+        directPolicy: "allow"        // 是否允许直接消息：allow | block
+      },
+
+      // 沙盒：隔离工具执行环境
+      sandbox: {
+        mode: "non-main",            // off | non-main（非主 Agent 隔离） | all
+        scope: "agent"               // session | agent | shared
+      },
+
+      // 工具
+      tools: {
+        enabled: true,
+        profile: "full"
+      }
     }
   }
 }
 ```
 
-### 2.3 检查 Skill 来源
+**配置项速查：**
 
-```bash
-# 列出所有已安装的 Skill
-clawhub list
+| 配置项 | 类型 | 默认值 | 什么时候改 |
+|--------|------|--------|-----------|
+| `workspace` | string | ~/.openclaw/workspace | 想把工作文件放到别的目录 |
+| `model.primary` | string | — | 换主模型（格式 `provider/model`） |
+| `model.fallbacks` | array | [] | 主模型挂了自动切换到备选 |
+| `imageMaxDimensionPx` | number | 1200 | 图片太大占 Token，可以调小 |
+| `heartbeat.every` | string | — | 调整 Agent 主动问候的频率 |
+| `sandbox.mode` | string | off | 安全敏感场景建议开 `all` |
 
-# 用 skill-vetter 扫描安全风险
-clawhub install skill-vetter
-# skill-vetter 会自动扫描已安装的 Skill
-```
+### 1.2 多 Agent 配置（agents.list）
 
-逐一检查：
-- 是否来自 ClawHub 官方或知名作者？
-- 安装量和评价如何？
-- 是否请求了超出功能需要的权限？
+一个 OpenClaw 实例可以运行多个 Agent——比如"家庭助手"和"工作助手"用不同模型：
 
----
-
-## 3. 防护措施
-
-### 3.1 开启沙盒模式（防止文件误删）
-
-沙盒模式让 OpenClaw 只能操作自己工作区内的文件，不会触及你电脑上的其他文件：
-
-```bash
-openclaw config set agents.defaults.sandbox.mode non-main
-```
-
-> **强烈建议所有用户开启沙盒模式**，尤其是刚开始使用的新手。等你熟悉了 OpenClaw 的行为模式后，再根据需要调整。
-
-三种模式对比：
-
-| 模式 | 含义 | Shell 命令 | 适合场景 |
-|------|------|-----------|---------|
-| `all` | 所有 Agent 都在沙盒中运行 | 受限 | 安全优先、群聊场景 |
-| `non-main` | 主 Agent 之外的子 Agent 在沙盒中运行 | 主 Agent 不受限 | 推荐日常使用 |
-| `off` | 不启用沙盒 | 不限制 | 开发者、明确知道自己在做什么 |
-
-### 3.2 网络隔离（不要直接暴露到公网）
-
-**本地部署用户**：
-
-- 不要使用 frp、ngrok 等内网穿透工具直接暴露 OpenClaw 端口
-- 如果需要远程访问，使用 SSH 隧道：
-
-```bash
-# 在本地电脑上建立 SSH 隧道，通过 SSH 安全访问远程 OpenClaw
-ssh -L 18789:127.0.0.1:18789 user@your-server-ip
-```
-
-**云服务器用户**：
-
-- OpenClaw 端口只绑定 `127.0.0.1`，不要绑定 `0.0.0.0`
-- 使用防火墙规则限制访问：
-
-```bash
-# 仅允许特定 IP 访问（替换为你的 IP）
-sudo ufw allow from YOUR_IP to any port 18789
-sudo ufw deny 18789
-```
-
-- 使用反向代理（如 Nginx）+ HTTPS + 基本认证：
-
-```nginx
-server {
-    listen 443 ssl;
-    server_name your-domain.com;
-
-    ssl_certificate /path/to/cert.pem;
-    ssl_certificate_key /path/to/key.pem;
-
-    location / {
-        auth_basic "OpenClaw";
-        auth_basic_user_file /etc/nginx/.htpasswd;
-        proxy_pass http://127.0.0.1:18789;
-    }
+```json5
+{
+  agents: {
+    list: [
+      {
+        id: "home",
+        default: true,                         // 默认 Agent
+        workspace: "~/.openclaw/workspace-home",
+        groupChat: {
+          mentionPatterns: ["@openclaw", "openclaw"]
+        }
+      },
+      {
+        id: "work",
+        workspace: "~/.openclaw/workspace-work",
+        model: {
+          primary: "anthropic/claude-opus-4-6"  // 工作用更强的模型
+        }
+      }
+    ]
+  }
 }
 ```
 
-### 3.3 认证与访问控制
+> 多 Agent 需要配合[绑定配置](#九、绑定配置)，指定哪个 Agent 响应哪个渠道。
 
-```bash
-# 开启认证
-openclaw config set gateway.auth.enabled true
+---
 
-# 重启使配置生效
-openclaw gateway restart
+## 二、渠道配置
+
+渠道决定了 OpenClaw 连接哪些聊天平台、谁能跟它说话。
+
+### 2.1 渠道与 DM 策略
+
+每个渠道可以独立设置"谁能私聊"策略：
+
+```json5
+{
+  channels: {
+    telegram: {
+      enabled: true,
+      botToken: "123:abc",
+      dmPolicy: "pairing",           // 私聊策略（见下表）
+      allowFrom: ["tg:123"],         // allowlist/open 模式下的白名单
+    },
+
+    whatsapp: {
+      enabled: true,
+      allowFrom: ["+15555550123"],
+      groups: {
+        "*": { requireMention: true } // 群聊必须 @ 才响应
+      }
+    },
+
+    discord: {
+      enabled: true,
+      botToken: "${DISCORD_BOT_TOKEN}",  // 引用环境变量
+      dmPolicy: "pairing",
+      allowFrom: ["discord:123"]
+    },
+
+    slack: {
+      enabled: true,
+      botToken: "${SLACK_BOT_TOKEN}",
+      dmPolicy: "pairing"
+    }
+  }
+}
 ```
 
-### 3.4 Skill 安全审查
+**DM 策略选项：**
 
-安装任何新 Skill 前：
+| 策略 | 行为 | 适用场景 |
+|------|------|---------|
+| `pairing` | 陌生人收到配对码，需管理员批准 | 个人使用（推荐） |
+| `allowlist` | 仅白名单内的用户可私聊 | 小团队 |
+| `open` | 允许所有人私聊（需 `allowFrom: ["*"]`） | 公开服务 |
+| `disabled` | 忽略所有私聊 | 仅群聊场景 |
 
-1. **先用 skill-vetter 扫描**：`clawhub install skill-vetter`（详见[第五章](/cn/adopt/chapter5/)）
-2. **检查 Skill 来源**：优先选择 ClawHub 官方推荐和高安装量的 Skill
-3. **阅读 SKILL.md**：了解 Skill 需要的权限和外部依赖
-4. **在沙盒模式下先试用**：确认行为符合预期后再放开权限
+### 2.2 群聊提及门控
 
-### 3.5 敏感信息保护
+群聊中，Agent 默认不会响应每条消息——需要被 @ 提及才会回复：
 
-- **API Key 使用环境变量**，不要写在配置文件里：
-
-```bash
-export OPENROUTER_API_KEY="sk-..."
+```json5
+{
+  agents: {
+    list: [{
+      id: "main",
+      groupChat: {
+        mentionPatterns: ["@openclaw", "openclaw"]  // 触发词
+      }
+    }]
+  },
+  channels: {
+    whatsapp: {
+      groups: {
+        "*": { requireMention: true }   // 所有群都要 @
+      }
+    }
+  }
+}
 ```
 
-- **不要在工作区文件中存放密码、Token 等敏感信息**
-- **定期轮换 API Key**：如果怀疑 Key 泄露，立即在提供商后台重新生成
+> 渠道配置详见[第 4 章 Chat Provider 配置](/cn/adopt/chapter4/)。
 
 ---
 
-## 4. 群聊场景特别警告
+## 三、网关配置
 
-### 为什么不建议把 OpenClaw 放进群聊？
+网关是 OpenClaw 的后台服务进程，所有消息收发都经过它。
 
-OpenClaw 的设计假设是：与它对话的人是可信任的（就是你自己）。这个假设在群聊场景中完全不成立。
+```json5
+{
+  gateway: {
+    port: 18789,                      // 监听端口
+    bind: "loopback",                 // 绑定地址
+    auth: {
+      mode: "token",                  // 认证方式
+      token: "${OPENCLAW_GATEWAY_TOKEN}",
+      password: "${OPENCLAW_GATEWAY_PASSWORD}",
+      allowTailscale: true            // Tailscale 连接免认证
+    },
+    tailscale: {
+      mode: "off",                    // off | serve | funnel
+      resetOnExit: false
+    },
+    reload: {
+      mode: "hybrid",                // 配置变更时的重载策略
+      debounceMs: 300
+    }
+  }
+}
+```
 
-**真实案例**：
+**绑定地址——决定谁能连：**
 
-- 群友发送精心构造的消息，直接让 OpenClaw 执行 `rm -rf` 删除服务器文件
-- 攻击者通过提示词注入获取环境变量中的 API Key
-- 恶意用户让 OpenClaw 导出所有对话历史和工作区文件
-- 有人让 OpenClaw 执行关机命令，导致整个服务下线
+| 值 | 能访问的范围 | 安全性 |
+|----|-------------|--------|
+| `loopback` | 仅本机（127.0.0.1） | 最安全（默认） |
+| `lan` | 局域网内所有设备 | 需配合认证 |
+| `tailnet` | Tailscale 虚拟网络 | 端到端加密 |
+| `auto` | 自动检测 | — |
+| `custom` | 自定义地址 | 取决于配置 |
 
-### 如果必须在群聊中使用
+**热重载模式——改了配置要不要重启：**
 
-如果你了解风险但仍需要在群聊中使用 OpenClaw（如内部小团队），请**至少**做到：
+| 模式 | 行为 | 选择建议 |
+|------|------|---------|
+| `hybrid` | 安全更改热应用，关键更改自动重启 | 推荐（默认） |
+| `hot` | 仅热应用，需要重启时只记日志 | 不想被打断 |
+| `restart` | 任何改动都重启 | 追求一致性 |
+| `off` | 不监听配置文件变化 | 手动管理 |
 
-1. **开启沙盒模式**：`openclaw config set agents.defaults.sandbox.mode all`
-2. **限制 Shell 命令执行**：在 `openclaw.json` 中禁用或限制 Shell 工具
-3. **使用白名单**：只允许特定用户 ID 与 OpenClaw 交互
-4. **限制敏感操作**：在 SOUL.md 中明确禁止文件删除、系统命令等危险操作
-5. **独立部署**：群聊用的 OpenClaw 实例和你私人使用的实例必须完全分开
-6. **监控日志**：实时关注异常请求（详见[第十一章日志诊断](/cn/adopt/chapter11/)）
-
-> **再次强调**：以上措施只能降低风险，不能消除风险。提示词注入目前无法根治。如果你的场景允许，**最安全的做法就是不要把 OpenClaw 放进群聊**。
+> 网关管理详见[第 8 章](/cn/adopt/chapter8/)，远程访问详见[第 9 章](/cn/adopt/chapter9/)。
 
 ---
 
-## 5. 安全检查定期清单
+## 四、会话配置
 
-建议每月执行一次：
+会话决定了"谁和谁的对话算同一个上下文"。
 
-- [ ] 检查 OpenClaw 是否暴露在公网（用 `curl -s ifconfig.me` 查 IP，去暴露监测面板验证）
-- [ ] 确认认证已开启（`gateway.auth.enabled: true`）
-- [ ] 确认沙盒模式状态符合预期
-- [ ] 用 skill-vetter 扫描所有已安装 Skill
-- [ ] 检查并轮换 API Key（尤其是使用量异常时）
-- [ ] 查看 OpenClaw 日志中是否有异常请求（`openclaw logs --limit 100`）
-- [ ] 确认防火墙规则未被修改
-- [ ] 备份工作区文件（详见[第十一章备份恢复](/cn/adopt/chapter11/)）
+```json5
+{
+  session: {
+    dmScope: "per-channel-peer",      // 会话隔离粒度
+
+    threadBindings: {                 // 线程绑定（Discord/Slack 等有线程的平台）
+      enabled: true,
+      idleHours: 24,                  // 线程空闲多久后解绑
+      maxAgeHours: 0                  // 0 = 不限最大年龄
+    },
+
+    reset: {                          // 自动重置会话
+      mode: "daily",                  // daily | idle | manual
+      atHour: 4,                      // daily 模式：每天几点重置（24h 制）
+      idleMinutes: 120                // idle 模式：空闲多久重置
+    }
+  }
+}
+```
+
+**会话隔离粒度——影响"谁和谁共享记忆"：**
+
+| 值 | 隔离方式 | 适用场景 |
+|----|---------|---------|
+| `main` | 所有人共享一个会话 | 单用户 |
+| `per-peer` | 每人一个会话 | 简单多用户 |
+| `per-channel-peer` | 每个平台的每人一个会话 | 多平台多用户（推荐） |
+| `per-account-channel-peer` | 每个账号×平台×用户 | 多 Agent 多平台 |
 
 ---
 
-> **安全不是一劳永逸的事，而是持续的习惯。** 就像锁门一样——你不会因为"这个小区很安全"就不锁门。养成定期检查的习惯，你的龙虾才能安全地为你服务。
+## 五、工具配置
+
+控制 Agent 能使用哪些工具（搜索、编程、文件操作等）。
+
+```json5
+{
+  tools: {
+    profile: "full",                  // 工具集级别
+    enabled: true,
+    web: {
+      search: {
+        apiKey: "${BRAVE_API_KEY}"    // Web 搜索需要的 API Key
+      }
+    }
+  }
+}
+```
+
+**工具集级别——从少到多：**
+
+| Profile | 包含的工具 | 适用场景 |
+|---------|----------|---------|
+| `messaging` | 仅聊天，无工具 | 纯对话 |
+| `default` | 基础工具集 | 日常使用 |
+| `coding` | 编程工具集 | 开发者 |
+| `full` | 完整工具集 | 全功能（推荐） |
+| `all` | 所有工具（含实验性） | 尝鲜 |
+
+---
+
+## 六、技能配置
+
+安装技能后，部分技能需要在配置中填入 API Key 才能启用。
+
+```json5
+{
+  skills: {
+    entries: {
+      "nano-banana-pro": {
+        enabled: true,
+        apiKey: {
+          source: "file",
+          provider: "filemain",
+          id: "/skills/entries/nano-banana-pro/apiKey"
+        }
+      }
+    }
+  }
+}
+```
+
+> 技能管理用 `clawhub` CLI，详见[附录 D 技能开发与发布指南](/cn/appendix/appendix-d)。
+
+---
+
+## 七、定时任务配置
+
+控制 Cron 任务的全局行为。
+
+```json5
+{
+  cron: {
+    enabled: true,
+    maxConcurrentRuns: 2,             // 最多同时执行几个任务
+    sessionRetention: "24h",          // 任务会话保留时长
+    runLog: {
+      maxBytes: "2mb",                // 日志文件大小上限
+      keepLines: 2000                 // 保留最近多少行
+    }
+  }
+}
+```
+
+> 定时任务的增删改查见[附录 F 命令速查表](/cn/appendix/appendix-f#定时任务)。
+
+---
+
+## 八、Webhook 配置
+
+让外部服务（Gmail、GitHub、IoT 传感器等）通过 HTTP 触发 Agent 执行任务。
+
+```json5
+{
+  hooks: {
+    enabled: true,
+    token: "shared-secret",           // 鉴权 Token（调用方需携带）
+    path: "/hooks",                   // Webhook 路径前缀
+    defaultSessionKey: "hook:ingress",
+    allowRequestSessionKey: false,
+    allowedSessionKeyPrefixes: ["hook:"],
+    mappings: [
+      {
+        match: { path: "gmail" },     // 匹配 /hooks/gmail
+        action: "agent",
+        agentId: "main",
+        deliver: true                 // 处理结果投递到渠道
+      }
+    ]
+  }
+}
+```
+
+> 例如收到 Gmail 新邮件通知后，Agent 自动摘要并推送到 Telegram。
+
+---
+
+## 九、绑定配置
+
+多 Agent 场景下，绑定决定"哪个渠道的消息由哪个 Agent 处理"。
+
+```json5
+{
+  bindings: [
+    {
+      agentId: "home",
+      match: {
+        channel: "whatsapp",
+        accountId: "personal"         // 个人 WhatsApp → home Agent
+      }
+    },
+    {
+      agentId: "work",
+      match: {
+        channel: "whatsapp",
+        accountId: "biz"              // 工作 WhatsApp → work Agent
+      }
+    }
+  ]
+}
+```
+
+---
+
+## 十、环境变量
+
+API Key 等敏感信息不要直接写在配置文件里——放在 `.env` 文件或环境变量中，配置文件通过 `${VAR}` 引用。
+
+```json5
+{
+  env: {
+    OPENROUTER_API_KEY: "sk-or-...",  // 直接设值（不推荐，建议用 .env）
+    vars: {
+      GROQ_API_KEY: "gsk-..."         // 额外变量
+    },
+    shellEnv: {
+      enabled: true,                  // 从 shell 环境继承变量
+      timeoutMs: 15000
+    }
+  }
+}
+```
+
+**环境变量加载优先级**（先找到的优先）：
+
+1. 父进程环境变量（如 systemd 传入的）
+2. 当前工作目录的 `.env` 文件
+3. `~/.openclaw/.env` 文件（全局兜底）
+
+> 已存在的环境变量不会被覆盖。
+
+---
+
+## 十一、高级特性
+
+以下特性在配置较复杂时才会用到，初学者可以跳过。
+
+### 11.1 配置分割（$include）
+
+配置文件太长？用 `$include` 拆分成多个文件：
+
+```json5
+// ~/.openclaw/openclaw.json
+{
+  gateway: { port: 18789 },
+  agents: {
+    $include: "./agents.json5"        // 单文件：整体替换
+  },
+  broadcast: {
+    $include: [
+      "./clients/a.json5",           // 多文件：按顺序深度合并
+      "./clients/b.json5"
+    ]
+  }
+}
+```
+
+**合并规则：**
+- 单文件引入：替换当前对象
+- 多文件引入：按顺序深度合并，后面的优先
+- 同级键：合并后覆盖被引入的值
+- 嵌套引入：最多 10 层
+- 路径：相对于当前文件解析
+
+### 11.2 环境变量替换
+
+配置中的字符串值可以引用环境变量：
+
+```json5
+{
+  gateway: {
+    auth: {
+      token: "${OPENCLAW_GATEWAY_TOKEN}"     // 整个值来自变量
+    }
+  },
+  models: {
+    providers: {
+      custom: {
+        baseUrl: "${API_BASE}/v1"            // 内联拼接
+      }
+    }
+  }
+}
+```
+
+**注意事项：**
+- 变量名仅匹配大写字母+下划线：`[A-Z_][A-Z0-9_]*`
+- 变量不存在或为空时，加载报错（防止误配置）
+- 转义：`$${VAR}` 输出字面量 `${VAR}`
+- 在 `$include` 文件中同样有效
+
+### 11.3 SecretRef 凭证
+
+对安全要求更高的场景，可以用 SecretRef 从外部系统获取凭证：
+
+```json5
+{
+  models: {
+    providers: {
+      openai: {
+        apiKey: {
+          source: "env",              // 从环境变量读取
+          provider: "default",
+          id: "OPENAI_API_KEY"
+        }
+      }
+    }
+  },
+  skills: {
+    entries: {
+      "nano-banana-pro": {
+        apiKey: {
+          source: "file",             // 从文件读取
+          provider: "filemain",
+          id: "/skills/entries/nano-banana-pro/apiKey"
+        }
+      }
+    }
+  },
+  channels: {
+    googlechat: {
+      serviceAccountRef: {
+        source: "exec",              // 从命令输出读取（如 Vault）
+        provider: "vault",
+        id: "channels/googlechat/serviceAccount"
+      }
+    }
+  }
+}
+```
+
+**source 类型：**
+
+| 类型 | 来源 | 适用场景 |
+|------|------|---------|
+| `env` | 环境变量 | 简单场景（默认推荐） |
+| `file` | 文件内容 | K8s Secret 挂载 |
+| `exec` | 命令执行输出 | HashiCorp Vault 等密钥管理器 |
+
+> 安全相关详见[第 10 章 安全防护与威胁模型](/cn/adopt/chapter10/)。
+
+---
+
+## 十二、完整配置示例
+
+不知道怎么开始？找一个和你情况最接近的模板，复制后修改。
+
+### 最小配置——刚装好，能用就行
+
+```json5
+// ~/.openclaw/openclaw.json
+{
+  agents: {
+    defaults: {
+      workspace: "~/.openclaw/workspace"
+    }
+  },
+  channels: {
+    whatsapp: {
+      allowFrom: ["+15555550123"]
+    }
+  }
+}
+```
+
+### 本地开发——用本地模型，不花钱
+
+```json5
+{
+  agents: {
+    defaults: {
+      workspace: "~/.openclaw/workspace",
+      model: {
+        primary: "ollama/llama3.2"
+      }
+    }
+  },
+  gateway: {
+    port: 18789,
+    bind: "loopback",
+    auth: {
+      mode: "token",
+      token: "dev-token"
+    }
+  }
+}
+```
+
+### 服务器部署——远程访问 + 模型回退
+
+```json5
+{
+  agents: {
+    defaults: {
+      workspace: "~/.openclaw/workspace",
+      model: {
+        primary: "anthropic/claude-sonnet-4-5",
+        fallbacks: ["openai/gpt-5.2"]         // 主模型挂了自动切换
+      }
+    }
+  },
+  channels: {
+    telegram: {
+      enabled: true,
+      botToken: "${TELEGRAM_BOT_TOKEN}",
+      dmPolicy: "pairing"
+    }
+  },
+  gateway: {
+    port: 18789,
+    bind: "lan",                               // 局域网可访问
+    auth: {
+      mode: "password",
+      password: "${GATEWAY_PASSWORD}"
+    }
+  },
+  session: {
+    dmScope: "per-channel-peer"                // 每人独立会话
+  }
+}
+```
+
+### 多 Agent——家庭 + 工作分开
+
+```json5
+{
+  agents: {
+    defaults: {
+      model: { primary: "anthropic/claude-sonnet-4-5" }
+    },
+    list: [
+      {
+        id: "home",
+        default: true,
+        workspace: "~/.openclaw/workspace-home"
+      },
+      {
+        id: "work",
+        workspace: "~/.openclaw/workspace-work",
+        model: { primary: "anthropic/claude-opus-4-6" }
+      }
+    ]
+  },
+  bindings: [
+    { agentId: "home", match: { channel: "whatsapp", accountId: "personal" } },
+    { agentId: "work", match: { channel: "whatsapp", accountId: "biz" } }
+  ]
+}
+```
+
+---
+
+## 十三、配置编辑方式
+
+四种方式修改配置，选最顺手的：
+
+| 方式 | 命令 / 操作 | 适合 |
+|------|------------|------|
+| 交互式向导 | `openclaw onboard` 或 `openclaw configure` | 初次配置 |
+| CLI 命令 | `openclaw config set/get/unset` | 改单个值 |
+| Web 控制台 | 打开 `http://127.0.0.1:18789` → Config 标签 | 可视化操作 |
+| 直接编辑文件 | 编辑 `~/.openclaw/openclaw.json` | 批量修改 |
+
+```bash
+# CLI 示例
+openclaw config get agents.defaults.workspace      # 读取
+openclaw config set agents.defaults.heartbeat.every "2h"  # 设置
+openclaw config unset tools.web.search.apiKey       # 删除
+openclaw config file                                # 查看路径
+openclaw config validate                            # 验证是否合法
+```
+
+> 直接编辑文件后，网关会自动检测变化并应用（取决于[热重载模式](#三、网关配置)）。
+
+---
+
+## 十四、注意事项
+
+### 严格验证
+
+OpenClaw 只接受完全匹配 schema 的配置。写错字段名、值类型不对、多了未知的键——网关都会**拒绝启动**。
+
+遇到启动失败时：
+1. 运行 `openclaw doctor` 查看具体哪里出错
+2. 运行 `openclaw doctor --fix` 自动修复
+3. 此时只有诊断命令可用：`openclaw doctor`、`openclaw logs`、`openclaw health`、`openclaw status`
+
+### 热重载范围
+
+改了配置不一定要重启。大部分配置改了立刻生效，只有网关核心参数需要重启：
+
+| 不用重启（热生效） | 需要重启 |
+|-------------------|---------|
+| 渠道 `channels.*` | 网关端口、绑定、认证 `gateway.*` |
+| Agent / 模型 `agents.*` `models.*` | 插件 `plugins` |
+| 定时任务 `cron` / Webhook `hooks` | 服务发现 `discovery` |
+| 会话 / 消息 / 工具 / 技能 / 日志 | — |
+
+> 例外：`gateway.reload` 和 `gateway.remote` 改动不触发重启。
+
+---
+
+**提示**：本配置详解基于 OpenClaw 官方文档整理。配置项可能随版本更新，完整参考请访问 [OpenClaw Configuration](https://docs.openclaw.ai/gateway/configuration)。

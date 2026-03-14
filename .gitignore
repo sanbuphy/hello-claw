@@ -1,6 +1,7 @@
 node_modules/
 docs/.vitepress/dist
 docs/.vitepress/cache
+docs/.vitepress/.temp
 
 .claude
 .vscode
@@ -8,3 +9,4 @@ docs/.vitepress/cache
 
 CLAUDE.md
 temp/*
+*.bak

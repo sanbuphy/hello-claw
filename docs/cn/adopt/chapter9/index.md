@@ -1,693 +1,416 @@
-# 第九章 个人助理与内容创作
+---
+prev:
+  text: '第8章 网关运维'
+  link: '/cn/adopt/chapter8'
+next:
+  text: '第10章 安全防护与威胁模型'
+  link: '/cn/adopt/chapter10'
+---
 
-> **前提**：本章需要你已完成前面章节的配置——至少完成第一章（安装）和第三章（消息渠道），最好也完成了第四章（定时任务）和第六章（外部服务集成）。本章是把这些能力"组装"起来的实战章节。
+# 第九章 远程访问与网络
 
-前面的章节介绍了 OpenClaw 的各项独立功能。本章将它们组合起来，搭建一个完整的个人助理系统——让 OpenClaw 成为你的"数字员工"，主动管理邮件、日程、信息和提醒；同时也能帮你从灵感收集到多平台发布，打造内容创作流水线。
+想在外面也能控制家里的龙虾？本章搞定远程访问。
 
-## 第一部分：个人助理系统
+> **前置条件**：已完成[第八章 网关运维](/cn/adopt/chapter8/)，Gateway 正常运行。
 
-## 1. 系统架构
+Gateway 默认只在本机运行（`127.0.0.1:18789`）。要从其他设备访问，你需要一条"通道"。**两分钟版本：** 推荐 Tailscale，安装后一行命令搞定。
 
-一个完整的个人助理系统由以下模块组成：
+## 1. 选哪种方案？
 
-```
-┌─────────────────────────────────────────┐
-│              消息渠道层                   │
-│   Telegram / 飞书 / QQ（第三章）          │
-├─────────────────────────────────────────┤
-│              技能层                       │
-│   Gmail / Calendar / Notion / Weather    │
-├─────────────────────────────────────────┤
-│              调度层                       │
-│   Cron 定时任务（第四章）                  │
-├─────────────────────────────────────────┤
-│              记忆与身份层                   │
-│   IDENTITY.md / SOUL.md / USER.md /      │
-│   AGENTS.md / TOOLS.md / MEMORY.md /     │
-│   HEARTBEAT.md / BOOT.md / BOOTSTRAP.md  │
-└─────────────────────────────────────────┘
-```
+| 方案 | 适用场景 | 难度 |
+|------|---------|------|
+| **Tailscale 组网** | 多设备跨网络，体验最好 | ⭐⭐ |
+| **SSH 隧道** | 有 SSH 就能用，最通用 | ⭐ |
+| **LAN 直连** | 同一局域网内 | ⭐ |
 
-简单来说，个人助理就像一个"管家"：它通过**消息渠道**和你沟通（飞书/Telegram），用**技能**帮你操作各种工具（邮件、日历），按**定时任务**主动工作，并通过**记忆与身份文件**记住自己是谁、你是谁、以及你的偏好（详见本章第 7 节）。
+不确定选哪个？**从 Tailscale 开始**——自动 HTTPS、无需手动转发、多设备共享。
 
-<!-- TODO: 补充个人助理系统架构示意图（可视化版本，替代纯文本框图） -->
+## 2. SSH 隧道（最通用的方式）
 
-## 2. 早间简报系统
-
-### 2.1 自动化信息聚合
-
-通过定时任务自动收集你关注的信息源（RSS 是一种网站内容订阅格式，很多技术博客都支持）：
-
-### 2.2 配置所需技能
+在咖啡厅想连回家里的 Gateway？一行命令建立隧道：
 
 ```bash
-clawhub install weather
-clawhub install gog           # Gmail + Calendar
-clawhub install hackernews    # 可选：技术新闻
+ssh -N -L 18789:127.0.0.1:18789 user@远程主机IP
 ```
 
-### 2.3 创建简报任务
+打开另一个终端验证：
 
-```
-每天早上 7:30 给我发送今日简报到 Telegram：
-1. 北京今天的天气和空气质量
-2. 今天的日历事件列表
-3. 未读的重要邮件（来自老板或客户的）
-4. Hacker News 今日热门前 3 条
+```bash
+openclaw status --deep
 ```
 
-<!-- TODO: 补充简报消息截图 -->
-
-### 2.4 个性化调整
-
-编辑 `MEMORY.md` 让简报更符合你的需求：
-
-```markdown
-## 简报偏好
-- 天气关注：空气质量对我很重要，AQI > 100 时特别标注
-- 邮件过滤：只关注 @company.com 和标记为重要的邮件
-- 新闻兴趣：AI、Rust、分布式系统
-```
+看到 Gateway 状态就说明通了。
 
 <details>
-<summary>展开：更多助理能力（邮件管理、日程管理、信息整理、智能提醒）</summary>
+<summary>嫌每次输长命令麻烦？配置 SSH Config 简化</summary>
 
-## 3. 邮件管理
-
-### 3.1 自动分类
+编辑 `~/.ssh/config`，添加：
 
 ```
-每天上午 9 点和下午 3 点检查收件箱：
-- 来自同事的邮件标记为"工作"
-- 订阅邮件归档
-- 包含"紧急"或"urgent"的邮件立即通知我
-- 其他邮件生成摘要发给我
+Host my-gateway
+    HostName 172.27.187.184        # 替换为你的远程主机 IP
+    User jefferson                  # 替换为你的用户名
+    LocalForward 18789 127.0.0.1:18789
+    IdentityFile ~/.ssh/id_rsa
 ```
 
-### 3.2 智能回复
+之后只需：
 
-```
-帮我回复王经理的邮件，告诉他：
-1. 方案已经评审通过
-2. 预计下周三开始开发
-3. 需要他确认一下预算
-语气正式但友好
+```bash
+ssh -N my-gateway
 ```
 
-### 3.3 邮件搜索
+**免密登录**：把公钥复制到远程主机，以后不再输密码：
 
-```
-找出过去一个月所有关于"Q1 季度报告"的邮件，整理成时间线
-```
-
-## 4. 日程管理
-
-### 4.1 智能日程安排
-
-```
-我下周需要安排以下事项：
-- 和张三 1v1（30 分钟）
-- 团队周会（1 小时）
-- 产品评审（2 小时）
-帮我在空闲时间段安排好，避免连续会议
-```
-
-### 4.2 会议准备
-
-```
-明天下午 3 点有产品评审会议，帮我准备：
-1. 从 Notion 中提取本迭代的需求列表
-2. 从 GitHub 中获取相关 PR 的状态
-3. 生成一个 5 分钟的汇报大纲
-```
-
-### 4.3 冲突检测
-
-```
-检查我下周的日程是否有冲突，如果有帮我提出调整建议
-```
-
-## 5. 信息整理
-
-### 5.1 知识库管理
-
-结合 Notion 或 Obsidian 技能：
-
-```
-把今天所有和"微服务架构"相关的对话内容整理到 Notion 的"技术笔记"页面
-```
-
-```
-每周日整理本周的工作笔记，归类到 Obsidian 对应的项目文件夹
-```
-
-### 5.2 阅读摘要
-
-```
-帮我阅读这 3 篇文章（URL），各生成 200 字的中文摘要，保存到 Notion
-```
-
-## 6. 智能提醒
-
-### 6.1 上下文感知提醒
-
-```
-提醒我明天和李总开会前，先看一下他上次提到的技术方案
-```
-
-```
-如果明天要下雨，早上提醒我带伞
-```
-
-### 6.2 习惯追踪
-
-```
-每天晚上 10 点问我今天是否完成了以下习惯：
-- 锻炼 30 分钟
-- 阅读 20 页
-- 写代码 2 小时
-记录到 Notion 的"习惯追踪"数据库
+```bash
+ssh-copy-id -i ~/.ssh/id_rsa user@远程主机IP
 ```
 
 </details>
 
-## 7. 工作区配置文件
+**Token 认证**：如果 Gateway 开了认证，连接时还需要提供 token：
 
-OpenClaw 通过一组 Markdown 文件来"认识自己"和"认识你"。这些文件都存放在工作区目录（默认 `~/.openclaw/workspace/`），每次对话开始时自动加载。你可以把它们想象成给助理准备的一套"入职材料"：
+```bash
+# macOS
+launchctl setenv OPENCLAW_GATEWAY_TOKEN "你的token"
 
-> **什么是工作区？** 工作区就是 OpenClaw 存放配置和记忆的文件夹。里面全是普通的 Markdown 文本文件（`.md` 后缀），你可以用任何文本编辑器打开和修改。
-
-```
-~/.openclaw/workspace/
-├── IDENTITY.md      # 助理的"名片"：名字、性格标签
-├── SOUL.md          # 助理的"员工手册"：行为准则和价值观
-├── USER.md          # 关于你的"档案"：你是谁、有什么偏好
-├── AGENTS.md        # 助理的"岗位说明书"：工作流程和规则
-├── TOOLS.md         # 助理的"设备清单"：你的环境专属信息
-├── MEMORY.md        # 助理的"备忘录"：长期记忆
-├── HEARTBEAT.md     # 助理的"巡检清单"：定期主动检查的事项
-├── BOOT.md          # 助理的"开机任务"：网关启动时执行
-├── BOOTSTRAP.md     # 助理的"入职引导"：首次运行时的初始化（完成后自动删除）
-└── memory/          # 每日工作日志（自动生成）
-    ├── 2026-03-07.md
-    └── 2026-03-08.md
+# Linux
+export OPENCLAW_GATEWAY_TOKEN="你的token"
 ```
 
-下面逐一介绍每个文件的作用。**你不需要一次性配置所有文件**——OpenClaw 首次运行时会自动生成默认模板，你可以之后慢慢修改。
+或者写入配置文件持久化：
 
-### 7.1 IDENTITY.md —— 助理的"名片"
-
-> **一句话解释**：告诉 OpenClaw "你叫什么名字、是什么风格"。就像给新员工做一张工牌。
-
-这是最短的配置文件，通常只有几行。OpenClaw 首次启动时会和你互动，一起确定这些信息：
-
-```markdown
-# IDENTITY.md
-- **Name:** 小龙虾
-- **Creature:** AI 助理
-- **Vibe:** 高效、友好、偶尔幽默
-- **Emoji:** 🦞
+```json5
+{
+  gateway: {
+    mode: "remote",
+    remote: {
+      url: "ws://127.0.0.1:18789",
+      token: "你的token",
+    },
+  },
+}
 ```
 
-这个文件让助理有一个稳定的"自我认知"，不会在不同对话中忘记自己是谁。
-
-### 7.2 SOUL.md —— 助理的"员工手册"
-
-> **一句话解释**：定义助理的性格、价值观和不可违反的行为底线。就像公司给员工的行为准则。
-
-SOUL.md 是 OpenClaw 的"宪法"——里面的规则在所有对话中始终生效，任何技能都无法覆盖它。
-
-```markdown
-# SOUL.md
-
-## 性格
-- 简洁高效，不说废话
-- 遇到不确定的信息会主动确认
-- 重要事项会多次提醒
-
-## 核心规则
-- 发送邮件前必须让我确认
-- 不要在非工作时间（22:00-08:00）发送非紧急通知
-- 敏感信息（密码、API Key）绝不通过消息渠道发送
-- 不确定的事情要坦诚说"我不确定"
-
-## 长期指令
-- 早间简报最多 5 条要点
-- 总结新闻时必须标注来源
-```
-
-### 7.3 USER.md —— 关于你的"档案"
-
-> **一句话解释**：告诉助理"你是谁"。就像你给新助理做自我介绍。
-
-USER.md 存放你的基本信息和偏好，让助理不用每次都问你叫什么、在哪个时区：
-
-```markdown
-# USER.md
-- **Name:** 张明
-- **What to call them:** 明哥
-- **Timezone:** UTC+8（北京时间）
-
-## Context
-- 在 XX 科技做后端开发
-- 关注 AI、Rust、分布式系统
-- 不喜欢太长的邮件，偏好要点式回复
-```
-
-助理会随着和你的互动逐渐补充这个文件，越用越懂你。
-
-### 7.4 AGENTS.md —— 助理的"岗位说明书"
-
-> **一句话解释**：定义助理的工作流程和操作规范。就像岗位职责说明书。
-
-这个文件控制助理每次启动时先做什么、怎么处理记忆、什么情况下需要征求你的同意。通常使用 OpenClaw 自带的默认模板即可，高级用户可以自定义。
-
-关键规则示例：
-- 每次对话开始时，先读取 SOUL.md、USER.md 和最近的记忆文件
-- 读取和浏览操作可以自主进行，发送邮件或发帖必须先确认
-- 在群聊中只在被提到时才回复，避免打扰他人
-
-> **新手建议**：AGENTS.md 的默认模板已经很好用了，一般不需要修改。等你熟悉 OpenClaw 后，再根据需要调整。
+> SSH 隧道让流量透明转发，URL 仍保持 `ws://127.0.0.1:18789`。
 
 <details>
-<summary>展开：多 Agent 协作模式</summary>
+<summary>开机自动启动隧道（macOS LaunchAgent）</summary>
 
-#### sessions_send vs sessions_spawn
+保存为 `~/Library/LaunchAgents/ai.openclaw.ssh-tunnel.plist`：
 
-OpenClaw 在处理复杂任务时，可以启动多个 Agent 协作。AGENTS.md 中的规则决定了何时、如何启动子 Agent：
+```xml
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN"
+  "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+    <key>Label</key>
+    <string>ai.openclaw.ssh-tunnel</string>
+    <key>ProgramArguments</key>
+    <array>
+        <string>/usr/bin/ssh</string>
+        <string>-N</string>
+        <string>my-gateway</string>
+    </array>
+    <key>KeepAlive</key>
+    <true/>
+    <key>RunAtLoad</key>
+    <true/>
+</dict>
+</plist>
+```
 
-| 模式 | 命令 | 说明 | 适用场景 |
-|------|------|------|---------|
-| **send** | `sessions_send` | 向已有会话发送消息，复用上下文 | 追问、补充指令、连续对话 |
-| **spawn** | `sessions_spawn` | 启动全新的独立 Agent 会话 | 并行任务、隔离执行、不同角色分工 |
+加载：
 
-举个例子：你让助理"帮我写一篇文章，同时查一下明天的天气"。助理可能会：
-1. 自己处理写文章的任务（主会话）
-2. `sessions_spawn` 一个新 Agent 去查天气（子会话）
-3. 子 Agent 完成后把天气结果发回来
+```bash
+launchctl bootstrap gui/$UID ~/Library/LaunchAgents/ai.openclaw.ssh-tunnel.plist
+```
 
-这一切都是自动的，你不需要手动操控。但如果你想自定义协作行为（比如限制最大并发 Agent 数量、定义子 Agent 的角色），可以在 AGENTS.md 中配置。
+常用管理命令：
 
-> **新手可以忽略这部分**。默认的 AGENTS.md 已经配好了合理的协作规则。
+```bash
+ps aux | grep "ssh -N my-gateway" | grep -v grep  # 检查是否运行
+lsof -i :18789                                      # 检查端口
+launchctl kickstart -k gui/$UID/ai.openclaw.ssh-tunnel  # 重启
+launchctl bootout gui/$UID/ai.openclaw.ssh-tunnel       # 停止
+```
 
 </details>
 
 <details>
-<summary>展开：多 Agent 架构方案与实战经验</summary>
+<summary>开机自动启动隧道（Linux systemd）</summary>
 
-#### 三种典型方案
+创建 `~/.config/systemd/user/openclaw-tunnel.service`：
 
-当你需要多个 Agent 分工协作时，有三种常见架构：
+```ini
+[Unit]
+Description=OpenClaw SSH Tunnel
+After=network-online.target
 
-| 方案 | 架构 | 适合 | 复杂度 |
-|------|------|------|--------|
-| A：单 Bot + 多 Agent | 一个飞书 Bot 入口，内部多角色 | 个人用户 | 低 |
-| B：多 Bot + 多 Agent | 每个 Agent 独立飞书 Bot | 企业内部 | 高 |
-| C：混合渠道 | 飞书 + Discord + Telegram 混合 | 全球团队 | 很高 |
+[Service]
+ExecStart=/usr/bin/ssh -N -L 18789:127.0.0.1:18789 my-gateway
+Restart=always
+RestartSec=10
 
-> **新手建议**：从方案 A 开始，先跑通一个 Bot 入口 + 2 个 Agent 角色，再逐步扩展。
+[Install]
+WantedBy=default.target
+```
 
-#### 配置前必须想清楚
-
-- 你需要几个角色？每个负责什么？
-- 哪个是主 Agent（总指挥）？
-- 是否需要独立飞书 Bot？（推荐先用方案 A）
-- 模型选择：重要角色用高端模型，轻量角色用低成本模型省钱（详见[第八章](/cn/adopt/chapter8/)）
-
-#### 实战最佳实践
-
-- **先跑通 2 个 Agent 再加更多**，不要一口气配 7 个
-- 每个 Agent 的 **SOUL.md 要写清楚职责边界**，避免角色混乱
-- 主 Agent 的 **AGENTS.md 里写清楚派发规则**（什么任务交给谁）
-- 子 Agent **没有主 Agent 的记忆**，`spawn` 时要给完整上下文
-- 定期巡检子 Agent 的执行情况，确保任务正常推进
+```bash
+systemctl --user enable --now openclaw-tunnel
+systemctl --user status openclaw-tunnel
+```
 
 </details>
 
-### 7.5 TOOLS.md —— 助理的"设备清单"
+## 3. Tailscale 组网（推荐方案）
 
-> **一句话解释**：记录你的个人环境信息，比如服务器地址、设备名称等。就像给助理一张"办公室设备清单"。
+[Tailscale](https://tailscale.com) 让你的所有设备像在同一局域网里——手机、笔记本、VPS 都能直接访问 Gateway，自动 HTTPS，无需手动转发端口。
 
-技能（Skill）定义了工具*怎么用*，TOOLS.md 记录的是*你的具体配置*。这样你可以更新技能而不丢失个人设置，也可以分享技能而不泄露自己的环境信息：
+### 3.1 最快上手：Tailscale Serve
 
-```markdown
-# TOOLS.md
+在 `openclaw.json` 加两行：
 
-## SSH 主机
-- home-server → 192.168.1.100, 用户名: admin
-- dev-server → 10.0.0.50, 用户名: deploy
-
-## 智能家居
-- 客厅音箱 → HomePod，名称"客厅"
-- 前门摄像头 → 180° 广角，有移动侦测
+```json5
+{
+  gateway: {
+    bind: "loopback",
+    tailscale: { mode: "serve" },
+  },
+}
 ```
 
-> **不用智能家居或服务器？** 这个文件可以留空或跳过，不影响其他功能。
+重启 Gateway 后，用 tailnet 内任意设备访问：`https://<你的MagicDNS地址>/`
 
-### 7.6 MEMORY.md —— 助理的"备忘录"
+CLI 一行命令等效：
 
-> **一句话解释**：助理的长期记忆库，存放经过整理的重要信息。就像助理自己维护的工作笔记本。
-
-和 USER.md（你主动告诉助理的信息）不同，MEMORY.md 主要由助理在日常工作中自动积累和整理：
-
-```markdown
-# MEMORY.md
-
-## 常用联系人
-- 张三：前端负责人，邮箱 zhangsan@company.com
-- 李四：产品经理，飞书 ID xxx
-
-## 项目信息
-- 当前项目：用户中心重构
-- 技术栈：React + Go + PostgreSQL
-- Sprint 周期：每两周
-
-## 偏好记录
-- 周报格式偏好：Markdown 要点式，不超过 500 字
-- 会议纪要偏好：按议题分组，标注 Action Item 和负责人
+```bash
+openclaw gateway --tailscale serve
 ```
 
-OpenClaw 还会自动维护 `memory/` 文件夹下的每日日志（`memory/2026-03-08.md`），记录当天的对话要点。MEMORY.md 则是从这些日志中提炼的精华。
-
-> **隐私保护**：MEMORY.md 只在你和助理的私聊中加载，不会在群聊中暴露你的个人信息。
+> **前置**：需先安装 Tailscale 并 `tailscale up` 登录，tailnet 启用 HTTPS。
 
 <details>
-<summary>展开：记忆系统的工作原理</summary>
+<summary>Serve 模式可以免 Token 吗？</summary>
 
-#### 会话记录与压缩
+可以。设置 `gateway.auth.allowTailscale: true` 后，tailnet 内的设备访问 Control UI 和 WebSocket **不需要 token**——Tailscale 身份头自动认证。
 
-每次对话都会生成一个 **JSONL 格式的会话文件**（存储在 `~/.openclaw/sessions/` 目录下），完整记录对话的每一轮问答。随着对话进行，会话文件会越来越大。
+注意：`/v1/*`、`/tools/invoke` 等 HTTP API 端点**仍需 token 认证**。
 
-为了控制上下文长度，OpenClaw 采用**自动压缩**策略：
+如果主机上可能运行不可信代码，建议关闭：
 
-| 阶段 | 触发条件 | 处理方式 |
+```json5
+{
+  gateway: {
+    auth: { allowTailscale: false },
+  },
+}
+```
+
+</details>
+
+<details>
+<summary>需要公网访问？用 Tailscale Funnel</summary>
+
+Funnel 把 Gateway 暴露到公共互联网，**必须配置密码认证**：
+
+```json5
+{
+  gateway: {
+    bind: "loopback",
+    tailscale: { mode: "funnel" },
+    auth: {
+      mode: "password",
+      password: "替换为强密码",
+    },
+  },
+}
+```
+
+CLI 等效：
+
+```bash
+openclaw gateway --tailscale funnel --auth password
+```
+
+> 密码建议用环境变量 `OPENCLAW_GATEWAY_PASSWORD`，不要写在配置文件里。
+
+Funnel 限制：需要 Tailscale v1.38.3+、MagicDNS、HTTPS，只支持端口 443/8443/10000，macOS 需开源版客户端。
+
+</details>
+
+<details>
+<summary>不用 Serve/Funnel，直接绑定 Tailnet IP</summary>
+
+```json5
+{
+  gateway: {
+    bind: "tailnet",
+    auth: {
+      mode: "token",
+      token: "你的token",
+    },
+  },
+}
+```
+
+访问地址：`http://<tailscale-ip>:18789/`（注意：`127.0.0.1:18789` 此模式下不可用）
+
+</details>
+
+参考文档：[Tailscale Serve](https://tailscale.com/kb/1312/serve) · [Tailscale Funnel](https://tailscale.com/kb/1223/tailscale-funnel)
+
+<details>
+<summary>常见部署架构参考</summary>
+
+**架构一：VPS 24 小时在线，笔记本远程控制**
+
+笔记本经常合盖休眠？把 Gateway 跑在 VPS 或家庭服务器上：
+
+![云服务器 24 小时在线部署架构：Gateway 部署在 VPS 上，笔记本通过 SSH 隧道远程连接](./images/OpenClaw云服务器.png)
+
+```mermaid
+flowchart LR
+
+A["VPS / 家庭服务器
+Gateway（24h Online）
+Loopback 绑定"]
+
+B["你的笔记本
+远程控制"]
+
+B -->|SSH / Tailscale Tunnel| A
+```
+
+推荐：Gateway `bind: "loopback"` + Tailscale Serve 或 SSH 隧道。
+
+---
+
+**架构二：台式机 + 笔记本**
+
+macOS 用户可直接用 OpenClaw.app 的 **"Remote over SSH"** 模式：Settings → General → "OpenClaw runs" → 选 "Remote over SSH"。App 自动管理 SSH 隧道。
+
+---
+
+**架构三：笔记本是主力机，偶尔其他设备访问**
+
+用 Tailscale Serve 暴露 Control UI，Gateway 保持 loopback 绑定即可。
+
+</details>
+
+<details>
+<summary>消息是怎么从聊天软件流转到节点的？</summary>
+
+```
+Telegram 消息
+    ↓
+Gateway 接收消息
+    ↓
+Gateway 运行 Agent，决定是否调用节点工具
+    ↓
+Gateway 通过 WebSocket 调用节点（node.* RPC）
+    ↓
+节点返回结果
+    ↓
+Gateway 回复 Telegram
+```
+
+关键点：节点不运行 Gateway，只是通过 WebSocket 连接的外围设备。一台主机只跑一个 Gateway（除非用 `--profile` 隔离）。
+
+</details>
+
+## 4. 凭证与认证
+
+一句话规则：**显式参数（`--token`、`--password`）优先级最高，其次环境变量，最后配置文件。**
+
+用 `--url` 覆盖连接地址时，配置文件里的凭证不会自动带上，需同时传 `--token` 或 `--password`。
+
+<details>
+<summary>完整凭证优先级表</summary>
+
+**本地模式**：
+
+```
+Token: --token > OPENCLAW_GATEWAY_TOKEN > gateway.auth.token > gateway.remote.token
+Password: --password > OPENCLAW_GATEWAY_PASSWORD > gateway.auth.password > gateway.remote.password
+```
+
+**远程模式**：
+
+```
+Token: gateway.remote.token > OPENCLAW_GATEWAY_TOKEN > gateway.auth.token
+Password: --password > OPENCLAW_GATEWAY_PASSWORD > gateway.remote.password > gateway.auth.password
+```
+
+其他细节：
+- `gateway.remote.token` / `gateway.remote.password` 是**客户端凭证**，不控制服务端认证
+- `gateway.auth.token` 通过 SecretRef 配置但解析失败时，认证**直接失败**（不回退，避免掩盖配置错误）
+- Remote probe/status 严格使用 `gateway.remote.token`，不回退本地 token
+- 旧版 `CLAWDBOT_GATEWAY_*` 环境变量仅用于兼容
+
+</details>
+
+## 5. 安全最佳实践
+
+> **黄金规则：Gateway 保持 loopback 绑定，除非你确定需要对外暴露。**
+
+| 配置 | 建议 |
+|------|------|
+| Gateway 绑定 | `loopback` + SSH 或 Tailscale Serve（最安全） |
+| 非 loopback 绑定 | **必须**配置 token 或 password 认证 |
+| 明文 `ws://` | 仅限 loopback；私有网络需设 `OPENCLAW_ALLOW_INSECURE_PRIVATE_WS=1` |
+| TLS 指纹锁定 | 远程 `wss://` 用 `gateway.remote.tlsFingerprint` 固定证书 |
+| Tailscale Serve | 可 `allowTailscale: true` 免 token，HTTP API 仍需认证 |
+| Funnel | **必须**使用 password 认证（自动强制） |
+| 浏览器控制 | 视为 operator 权限——tailnet-only，谨慎节点配对 |
+
+<details>
+<summary>跨机器控制浏览器的安全配置</summary>
+
+在浏览器所在机器运行节点（node host），两台机器同在 tailnet。Gateway 通过 WebSocket 将浏览器操作代理到节点，**不需要**额外的 Serve URL。**避免用 Funnel 做浏览器控制**——节点配对权限等同 operator。
+
+</details>
+
+<details>
+<summary>连不上？故障排查</summary>
+
+**SSH 隧道排查：**
+
+```bash
+ps aux | grep "ssh -N" | grep -v grep  # 隧道是否运行
+lsof -i :18789                          # 端口是否被占用
+openclaw status                         # 手动测试连接
+```
+
+**常见问题：**
+
+| 症状 | 可能原因 | 解决方法 |
 |------|---------|---------|
-| 实时对话 | 上下文接近模型窗口限制 | 自动压缩早期对话为摘要，保留最近的完整内容 |
-| 会话结束 | 对话结束时 | 提取关键信息写入当天的 `memory/YYYY-MM-DD.md` |
-| 定期整理 | 记忆文件积累到一定量 | 将多天日志精炼合并到 MEMORY.md |
+| `connection refused` | 隧道未建立或 Gateway 未运行 | 检查 SSH 隧道和 Gateway 状态 |
+| `401 Unauthorized` | Token 不匹配 | 检查 `OPENCLAW_GATEWAY_TOKEN` 是否与 Gateway 配置一致 |
+| Tailscale Serve 无法访问 | HTTPS 未启用 | 在 Tailscale 管理控制台启用 HTTPS |
+| Funnel 启动失败 | 未配置密码或版本过低 | 设置 `auth.mode: "password"` 并升级 Tailscale |
+| `--url` 参数认证失败 | `--url` 不复用配置文件凭证 | 同时传 `--token` 或 `--password` |
 
-#### 记忆加载策略
-
-每次新对话开始时，OpenClaw 不会加载所有历史记忆，而是按优先级选择性加载：
-
-1. **MEMORY.md** — 始终加载（长期精华）
-2. **今天的日志** `memory/2026-03-09.md` — 始终加载
-3. **昨天的日志** `memory/2026-03-08.md` — 始终加载
-4. **更早的日志** — 仅在需要时按相关性检索
-
-这种设计确保助理既有长期记忆，又不会因为历史数据太多而拖慢响应速度。
-
-#### 存储空间管理
-
-记忆文件会随时间增长。你可以用以下命令清理旧数据：
+**验证远程连接：**
 
 ```bash
-# 清理 30 天前的会话记录
-openclaw cleanup --conversations --older-than 30d
-```
-
-> **小提示**：MEMORY.md 中的精华内容不受清理命令影响，只有原始会话记录和每日日志会被清理。重要信息已经被提炼到 MEMORY.md 中了。
-
-</details>
-
-<details>
-<summary>展开：OpenViking —— 长程记忆增强方案</summary>
-
-#### 原生记忆的局限
-
-随着使用时间增长，你可能会遇到这些情况：
-
-- **长对话遗忘**：超过几十轮对话后，助理开始忘记早期交代的信息（如 API 密钥、工作目标）
-- **技能调用重复犯错**：每次新对话调用同一个 Skill 时，都会犯同样的参数格式错误
-- **多实例记忆隔离**：如果你部署了多个 OpenClaw 实例（详见第七章），它们之间的记忆无法共享
-
-这些是 OpenClaw 原生 memory-core 模块在长程任务中的已知限制。
-
-#### OpenViking：外挂记忆体
-
-[OpenViking](https://github.com/volcengine/OpenViking) 是一个开源的 AI Agent 上下文数据库，可以作为 OpenClaw 的"外挂记忆体"，解决上述长程记忆痛点：
-
-| 能力 | 原生记忆 | 原生 + OpenViking |
-|------|---------|------------------|
-| 任务完成率 | 35.65% | **51.23%**（+43%） |
-| 输入 Token 消耗 | 24,611,530 | **2,099,622**（-91%） |
-| Skill 经验沉淀 | ❌ 每次重新试错 | ✅ 自动记住"避坑指南" |
-| 百轮对话后记忆 | ❌ 容易遗忘核心目标 | ✅ 始终保持记忆一致性 |
-| 多实例记忆共享 | ❌ 各自独立 | ✅ 统一用户记忆目录 |
-
-> 以上数据来自 [LoCoMo10 评测集](https://github.com/snap-research/locomo) 的 1540 条用例测试。
-
-#### 安装方式
-
-**本地插件安装**（最简单）：
-
-```bash
-curl -fsSL https://raw.githubusercontent.com/volcengine/OpenViking/main/examples/openclaw-memory-plugin/install.sh | bash
-```
-
-前置条件：Python >= 3.10、Node.js >= 22。脚本会自动校验依赖。
-
-**火山引擎云上版本**：适合需要稳定环境的团队，免去本地部署维护。详见[火山引擎文档](https://www.volcengine.com/docs/6396/2249500?lang=zh)。
-
-**ArkClaw 用户**：后续将内置 OpenViking 记忆能力，无需额外配置。
-
-> **新手建议**：OpenClaw 原生记忆对于日常使用已经够用。如果你发现助理在长对话中频繁"失忆"，或者需要多个 OpenClaw 实例协作，再考虑安装 OpenViking。
-
-详细文档：[OpenViking 安装指南（中文）](https://github.com/volcengine/OpenViking/blob/main/examples/openclaw-memory-plugin/INSTALL-ZH.md)
-
-</details>
-
-### 7.7 HEARTBEAT.md —— 助理的"巡检清单"
-
-> **一句话解释**：告诉助理在后台定期检查哪些事项。就像保安的巡逻路线表。
-
-OpenClaw 可以配置定期"心跳"轮询（默认约每 30 分钟一次），助理会读取这个文件并逐项检查：
-
-```markdown
-# HEARTBEAT.md
-
-## 定期检查
-- 邮件：有没有紧急未读邮件？
-- 日历：未来 24 小时有没有即将到来的会议？
-- 天气：明天是否有极端天气需要提醒？
-```
-
-如果所有检查都没有需要汇报的内容，助理会安静地跳过，不会打扰你。只有发现需要关注的事项时才会主动通知。
-
-> **和定时任务的区别**：HEARTBEAT.md 适合多个小检查打包在一起、时间不需要精确的场景。如果你需要某件事在精确时间执行（比如每天 8:00 发简报），应该用第四章介绍的 Cron 定时任务。
-
-### 7.8 BOOT.md —— 助理的"开机任务"
-
-> **一句话解释**：告诉 OpenClaw 每次启动时要做什么。就像电脑开机后自动运行的启动程序。
-
-当 Gateway（网关服务）启动或重启时，OpenClaw 会自动执行 BOOT.md 中列出的任务。这些任务**不会注入到对话上下文中**，而是作为独立的 Agent 任务运行。
-
-```markdown
-# Boot Checklist
-
-- Check calendar for today's meetings and prepare briefing
-- Review overnight emails and flag urgent items
-- Verify all connected services (Gmail, Calendar) are accessible
-```
-
-> **适用场景**：服务器重启后自动恢复工作状态、每天开机时准备当日简报。如果你的助理部署在服务器上（第七章），这个文件特别有用。
-
-### 7.9 BOOTSTRAP.md —— 助理的"入职引导"
-
-> **一句话解释**：OpenClaw 首次运行时的初始化流程。就像新员工第一天的入职引导——完成后就不再需要了。
-
-BOOTSTRAP.md 只在**全新工作区**的第一次对话时加载。它会引导 OpenClaw 和你互动，完成以下初始化：
-
-1. 通过对话确定助理的名字和风格（写入 IDENTITY.md）
-2. 了解你是谁、有什么偏好（写入 USER.md）
-3. 设定助理的性格和行为准则（写入 SOUL.md）
-
-初始化完成后，BOOTSTRAP.md 会**自动删除**，后续不再使用。
-
-> **你需要手动创建吗？** 通常不需要。OpenClaw 安装时会自动生成默认的 BOOTSTRAP.md。只有当你想**自定义初始化流程**（比如预设特定的助理名字或强制某些行为准则）时，才需要手动编辑它。
-
-<details>
-<summary>展开：所有工作区文件速查表</summary>
-
-| 文件 | 比喻 | 谁来编辑 | 加载时机 |
-|------|------|---------|---------|
-| IDENTITY.md | 工牌/名片 | 首次运行时和你一起创建 | 每次对话开始 |
-| SOUL.md | 员工手册 | 你来写，定义行为底线 | 每次对话开始 |
-| USER.md | 你的自我介绍 | 你写初始版，助理逐步补充 | 每次对话开始 |
-| AGENTS.md | 岗位说明书 | 通常用默认模板 | 每次对话开始 |
-| TOOLS.md | 设备清单 | 你来写，记录环境信息 | 每次对话开始 |
-| MEMORY.md | 工作笔记本 | 助理自动积累和整理 | 仅私聊时加载 |
-| HEARTBEAT.md | 巡检清单 | 你来写，定义检查项 | 心跳轮询时 |
-| BOOT.md | 开机任务 | 你来写，定义启动时执行的任务 | 网关启动时 |
-| BOOTSTRAP.md | 入职引导 | 自动生成，完成后自动删除 | 仅首次运行 |
-| memory/*.md | 每日工作日志 | 助理自动记录 | 加载今天和昨天 |
-
-</details>
-
-## 8. 组合示例：完整的一天
-
-**07:30** - 收到今日简报（天气 + 日程 + 邮件摘要）
-**09:00** - 自动检查邮件，分类并通知重要邮件
-**09:30** - 提醒："10 点有团队周会，上周 Action Item 还有 2 项未完成"
-**12:00** - 推送午间新闻摘要
-**14:50** - 提醒："15 点产品评审，已为你准备好汇报大纲"
-**15:00** - 自动记录会议要点到 Notion
-**17:00** - 生成今日工作总结
-**22:00** - 习惯追踪打卡提醒
-
-OpenClaw 的主动循环约每 30 分钟检查一次待办工作，你的偏好和记忆以 Markdown 文件（就是普通文本文件）形式存储在本地 `~/.openclaw/workspace` 目录下，不会上传到云端。
-
-这就是 OpenClaw 作为个人助理的完整形态——不是被动等你提问，而是主动帮你管理一天的工作和生活。
-
----
-
-## 第二部分：内容创作工具链
-
-无论你是自媒体作者、技术博主还是市场运营，OpenClaw 都可以帮你从灵感收集到多平台发布，打造完整的内容创作流水线。
-
-<!-- TODO: 补充内容创作工作流示意图（从灵感收集→写作→发布的流程图） -->
-
-## 9. 写作辅助
-
-### 9.1 头脑风暴
-
-```
-我想写一篇关于"AI Agent 在企业中的应用"的文章，帮我列出 10 个可能的角度
-```
-
-```
-针对"OpenClaw 入门教程"这个主题，帮我设计文章结构（大纲）
-```
-
-### 9.2 初稿生成
-
-```
-根据以下大纲，帮我写一篇 2000 字的技术博客：
-标题：为什么 AI Agent 比 Chatbot 更有价值
-1. 引言：从 ChatGPT 到 OpenClaw
-2. 核心区别：对话 vs 执行
-3. 实际案例
-4. 未来展望
-风格：通俗易懂，多用实际例子
-```
-
-### 9.3 润色与修改
-
-```
-帮我润色这篇文章，改进以下方面：
-- 让开头更有吸引力
-- 减少重复用词
-- 检查语法错误
-- 增加过渡句让段落衔接更自然
-```
-
-## 10. 灵感收集
-
-### 10.1 自动化信息聚合
-
-设置定时任务，让 OpenClaw 每天自动帮你收集感兴趣的内容（RSS 是一种网站内容订阅格式，很多博客和新闻网站都支持）：
-
-```
-每天早上收集以下来源的最新内容：
-- Hacker News 前 10 热门
-- GitHub Trending（Python + JavaScript）
-- 我关注的 10 个 RSS 订阅源
-整理成一份"今日灵感"清单，保存到 Notion
-```
-
-### 10.2 竞品监控
-
-```
-每天监控以下竞品的博客更新：
-- competitor-a.com/blog
-- competitor-b.com/blog
-如果有新文章，生成摘要发给我
-```
-
-<details>
-<summary>展开：进阶功能（素材管理、多平台发布、内容运营）</summary>
-
-## 11. 素材管理
-
-### 11.1 图片处理
-
-```
-帮我为这篇文章生成一张封面图，主题是"AI Agent 架构"，风格简洁现代
-```
-
-### 11.2 数据可视化
-
-把表格数据（如 CSV 文件，一种用逗号分隔的表格文件格式）转换为图表：
-
-```
-把这份 CSV 数据生成一张柱状图，展示各季度销售增长趋势
-```
-
-## 12. 多平台发布
-
-### 12.1 配置发布渠道
-
-```bash
-clawhub install linkedin
-clawhub install x-api
-clawhub install blogburst
-```
-
-### 12.2 一键多平台发布
-
-```
-把这篇文章同时发布到：
-- 微信公众号（需要手动，生成排版好的 HTML）
-- 知乎专栏（调整为问答式开头）
-- LinkedIn（生成英文摘要 + 3 个 hashtag）
-- X/Twitter（生成 3 条推文线程）
-```
-
-### 12.3 内容适配
-
-OpenClaw 会根据平台特点自动调整格式：
-
-| 平台 | 适配策略 |
-|------|---------|
-| 微信公众号 | 插入分隔线、强调框、合适的字号 |
-| 知乎 | 问答式开头、添加相关话题标签 |
-| LinkedIn | 专业语气、英文摘要、行业标签 |
-| X/Twitter | 280 字符限制、线程拆分、Emoji |
-
-## 13. 内容运营
-
-### 13.1 定时发布
-
-```
-把这周写好的 5 篇文章，分别在周一到周五的上午 9:30 发布
-```
-
-### 13.2 数据追踪
-
-```
-查看我上周发布的文章在各平台的阅读量和互动数据，生成对比报告
-```
-
-### 13.3 内容日历
-
-```
-帮我规划下个月的内容日历：
-- 每周 2 篇技术文章
-- 每周 1 篇行业观察
-- 每周 3 条社交媒体短内容
-主题围绕 AI Agent、自动化、效率提升
+# 通过 SSH 隧道
+ssh -N -L 18789:127.0.0.1:18789 my-gateway &
+openclaw status --deep
+
+# 通过 Tailscale
+openclaw gateway status --url ws://<tailscale-ip>:18789 --token 你的token
 ```
 
 </details>
 
-## 14. 最佳实践
+## 小结
 
-**人机协作**：让 OpenClaw 处理重复性工作（排版、发布、数据统计），你专注于创意和观点。AI 生成的初稿一定要人工审核和修改。
-
-**保持风格一致**：在 SOUL.md 中定义你的写作风格偏好，确保 OpenClaw 生成的内容风格统一。
-
-**版权意识**：AI 辅助生成的内容可能包含来自训练数据的相似表达。发布前检查原创性。
-
----
-
-**下一步**：[第十章 开发者效率提升](/cn/adopt/chapter10/)
+| 你的场景 | 推荐方案 |
+|---------|---------|
+| 有 SSH 就行，最简单 | SSH 隧道 + loopback |
+| 多设备跨网络，最佳体验 | Tailscale Serve + loopback |
+| 需要公网访问 | Tailscale Funnel + password |
+| 同一局域网 | LAN 绑定 + token 认证 |

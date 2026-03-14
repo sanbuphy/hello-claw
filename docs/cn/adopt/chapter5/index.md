@@ -1,533 +1,658 @@
-# 第五章 Skills 技能系统
+---
+prev:
+  text: '第4章 聊天平台接入'
+  link: '/cn/adopt/chapter4'
+next:
+  text: '第6章 智能体管理'
+  link: '/cn/adopt/chapter6'
+---
 
-> **前提**：本章假设你已完成第一章的安装配置。技能系统是 OpenClaw 的核心扩展机制，所有用户都建议了解。
+# 第五章 模型管理
 
-OpenClaw 的技能系统就像手机的 App Store，让你可以为龙虾安装各种能力扩展。想让它查天气？安装天气技能。想让它管理 Gmail？安装邮件技能。截至 2026 年 3 月，社区维护的 ClawHub 注册表已有超过 **16,000** 个技能，覆盖生产力、开发、运维、内容创作等多个领域。
+> 学完本章，你的龙虾就能换上任何你想要的 AI 大脑——免费的、最强的、本地的，甚至在一个挂掉时自动切换到另一个。
 
-## 1. 什么是技能
+> **前置条件**：已完成[第二章](/cn/adopt/chapter2/)的安装和基础模型配置。
 
-技能（Skill）本质上是一组提示词指令的集合，以 `SKILL.md` 文件为核心。技能从三个位置按优先级加载：
+---
 
-1. **工作区技能**（workspace）：项目目录下的技能，优先级最高
-2. **托管技能**（managed）：`~/.openclaw/skills/` 目录下通过 `clawhub` 安装的技能
-3. **内置技能**（bundled）：OpenClaw 自带的基础技能（web-search、web-fetch、browser、filesystem、shell）
+## 0. 先搞清楚：模型和提供商是什么？
 
-> **路径说明**：`~/` 是 Linux/macOS 中"用户主目录"的简写。在 Windows 上对应 `C:\Users\你的用户名\`。例如 `~/.openclaw/` 在 Windows 上就是 `C:\Users\你的用户名\.openclaw\`。
+OpenClaw 本身没有 AI 大脑，它负责连接——你选哪个大脑，它就用哪个。
 
-每个技能包含两个核心部分：
+模型标识格式是 `提供商/模型名`，比如：
 
-**元数据（YAML frontmatter）**：文件顶部用 `---` 包围的一段结构化信息，定义技能名称、描述、版本号等。你可以把它理解为技能的"身份证"，OpenClaw 通过它识别技能的基本信息。
+| 标识 | 含义 |
+|------|------|
+| `openrouter/stepfun/step-3.5-flash:free` | OpenRouter 上的免费模型 |
+| `anthropic/claude-opus-4-6` | Anthropic 的旗舰模型 |
+| `openai/gpt-5.1-codex` | OpenAI 的编程专用模型 |
+| `ollama/llama3.3` | 你电脑上本地运行的模型 |
 
-**提示词指令（Markdown 正文）**：元数据下方的文本内容，教 OpenClaw 如何使用工具完成任务。比如"查询天气时优先使用用户所在城市"。Markdown 是一种简单的文本排版格式，类似于写笔记时用 `#` 表示标题、`-` 表示列表。
+---
 
-技能在会话启动时会被"快照"固定，确保本次对话中技能行为不变。技能配置统一存放在工作区级的 `openclaw.json`（JSON 格式）中，而非技能目录内部。
+## 1. 快速上手
 
-<details>
-<summary>展开阅读：技能的形式化定义（学术视角，可跳过）</summary>
-
-### 1.1 技能的形式化定义
-
-从计算理论的视角，OpenClaw 的技能系统可以用有限自动机（Finite Automaton）来形式化描述。一个技能的生命周期可表示为一个确定性有限自动机（DFA）五元组：
-
-$$M = (Q, \Sigma, \delta, q_0, F)$$
-
-其中：
-
-- **Q**（状态集）= {Unregistered, Installed, Disabled, Gated, Active, HotReloading, SoftDeleted}，共 7 个状态
-- **Σ**（输入字母表）= {install, uninstall, enable, disable, gate, grant, revoke, edit, hot-reload, soft-delete, restore}，共 11 个输入符号
-- **δ**（转移函数）：定义状态之间的转换规则（见下方状态图）
-- **q₀**（初始状态）= Unregistered
-- **F**（接受状态集）= {Active}
-
-状态转移关系如下：
-
-```
-Unregistered --install--> Installed --enable--> Active
-Active --disable--> Disabled --enable--> Active
-Active --gate--> Gated --grant--> Active
-Gated --revoke--> Disabled
-Active --edit--> HotReloading --hot-reload--> Active
-Active --soft-delete--> SoftDeleted --restore--> Installed
-Active --uninstall--> Unregistered
-Disabled --uninstall--> Unregistered
-SoftDeleted --uninstall--> Unregistered
-```
-
-其中 **Gated** 状态表示技能需要满足门控条件（如 API Key 配置）才能激活，**HotReloading** 状态用于开发时实时编辑技能而不中断会话。
-
-这个形式化模型的意义在于：
-
-1. **状态可预测**：技能在任意时刻只能处于一个确定状态，避免了"薛定谔的插件"问题
-2. **转换可验证**：每个操作（输入符号）只能在特定状态下执行，非法操作会被拒绝
-3. **生命周期可追踪**：通过记录状态转移序列，可以完整还原技能的使用历史
-4. **会话一致性**：技能在会话启动时快照固定，保证了行为的形式正则性（formal regularity）
-
-> 参考文献：*Agents as Automata*（arxiv.org/html/2510.23487v1）将 Agent 行为建模为有限自动机，*MetaAgent FSM*（arxiv.org/html/2507.22606v1）进一步将此框架扩展到多 Agent 编排。
-
-在实际使用中，`clawhub install` 会自动将技能从 Unregistered → Installed → Active（合并为一步），但底层仍然遵循这个状态机模型。
-
-</details>
-
-## 2. ClawHub：技能注册表
-
-OpenClaw 社区维护了一个名为 [ClawHub](https://clawhub.ai) 的技能注册表（类似 npm 之于 Node.js），源码托管在 `github.com/openclaw/clawhub`。你可以通过 `clawhub` 命令行工具或 [clawhub.ai](https://clawhub.ai) 网站浏览和管理技能。
-
-### 2.0 安装 clawhub CLI
-
-`clawhub` 是 ClawHub 技能注册表的命令行工具，需要单独安装：
+想换个模型？一条命令：
 
 ```bash
-npm i -g clawhub
+openclaw config set agents.defaults.model.primary "anthropic/claude-opus-4-6"
 ```
 
-安装后需要登录才能使用：
-
-1. 访问 [clawhub.ai](https://clawhub.ai)，注册并登录
-2. 点击右上角**用户头像**，选择 **Settings**
-3. 在设置页面找到 **API tokens** 栏，点击 **Create token**
-4. 复制生成的 Token（只显示一次，请立即保存）
-
-![ClawHub API Token 创建页面](/clawhub-token.png)
-
-5. 在终端执行：
+或者重新跑向导，跟着提示走：
 
 ```bash
-clawhub login --token <你的token>
-```
-
-验证登录成功：
-
-```bash
-clawhub whoami
-```
-
-
-### 2.1 浏览和搜索技能
-
-![clawhub search 终端输出](/clawhub-search.png)
-
-```bash
-# 列出所有可用技能
-clawhub list
-
-# 搜索特定类型的技能
-clawhub search agent
-clawhub search email
-clawhub search database
-```
-
-### 2.2 安装技能
-
-安装技能有两种方式：
-
-**方式一：通过 clawhub CLI（推荐）**
-
-```bash
-clawhub install weather
-```
-
-OpenClaw 会自动下载技能文件到 `~/.openclaw/skills/weather/`，解析配置需求，然后引导你完成配置。
-
-**方式二：通过聊天粘贴 GitHub URL**
-
-直接在对话中粘贴包含 `SKILL.md` 的 GitHub 仓库 URL，OpenClaw 会自动识别并安装。
-
-安装完成后可以立即测试：
-
-```
-帮我查一下明天的天气
-```
-
-### 2.3 管理已安装的技能
-
-```bash
-# 查看已安装的技能
-clawhub list
-
-# 更新单个技能
-clawhub update weather
-
-# 更新所有技能
-clawhub update --all
-
-# 卸载技能
-clawhub uninstall weather
+openclaw onboard
 ```
 
 <details>
-<summary>展开：技能文件结构详解（开发者参考）</summary>
+<summary>想直接改配置文件？</summary>
 
-## 3. 技能文件结构
+编辑 `~/.openclaw/openclaw.json`（Windows：`C:\Users\你的用户名\.openclaw\openclaw.json`）：
 
-### 3.1 SKILL.md 格式
-
-每个技能的核心是一个 `SKILL.md` 文件，使用 YAML frontmatter 定义元数据：
-
-```markdown
----
-name: weather
-description: 查询全球城市天气预报和空气质量
-version: 1.2.0
-requirements:
-  - curl
----
-
-# Weather Skill
-
-当用户询问天气相关问题时，使用以下工具获取数据。
-
-## 使用规则
-
-1. 优先使用用户所在城市
-2. 默认返回未来 3 天的天气
-3. 如果用户关心空气质量，一并返回 AQI 数据
-
-## 工具
-
-### get_weather
-- 参数：city (string), days (number, default: 3)
-- 用途：获取指定城市未来 N 天的天气预报
-```
-
-frontmatter 字段说明：
-
-| 字段 | 说明 | 必填 |
-|------|------|------|
-| name | 技能标识符（即技能的唯一英文短名，如 `weather`），用于安装和引用 | 是 |
-| description | 一句话功能描述 | 是 |
-| version | 语义化版本号 | 是 |
-| requirements | 系统依赖列表（如 python3, curl） | 否 |
-| user-invocable | 是否可由用户通过斜杠命令手动调用 | 否 |
-| disable-model-invocation | 禁止模型自动调用，只能用户手动触发 | 否 |
-| metadata | 单行 JSON，定义门控条件等高级配置 | 否 |
-
-### 3.2 目录结构
-
-一个完整的技能目录结构：
-
-```
-~/.openclaw/skills/weather/
-├── SKILL.md          # 核心：技能说明和指令（唯一必需文件）
-├── scripts/          # 可选：辅助脚本
-│   └── fetch.sh
-└── examples/         # 可选：使用示例
-    └── demo.md
-```
-
-> **注意**：技能目录内没有 `config.yaml` 或 `tools.yaml`。所有技能配置统一在工作区级的 `openclaw.json` 中管理，而非分散在各技能目录中。
-
-</details>
-
-## 4. 新手必装：十大推荐技能
-
-ClawHub 上有超过 16,000 个技能，质量参差不齐——有的非常实用，有的只是披着 Skill 壳的模型伪装，甚至有的会窃取你的 API Key。以下是从中精选的 10 个**安全且实用**的技能，建议按顺序安装：
-
-### 第一个必装：安全守卫
-
-```bash
-clawhub install skill-vetter
-```
-
-**Skill Vetter** 会自动检测你后续安装的每一个技能，扫描是否存在危险行为（如窃取 API Key、上传个人信息）。**请务必第一个安装它**。
-
-### 核心能力技能
-
-| 序号 | 技能 | 安装命令 | 一句话说明 |
-|------|------|---------|-----------|
-| 2 | **Tavily Web Search** | `clawhub install tavily-search` | 专为 Agent 设计的联网搜索，结果全、新、简洁 |
-| 3 | **Agent Browser** | `clawhub install agent-browser` | 让龙虾打开浏览器，抓取信息、填写表单、操作网页 |
-| 4 | **Summarize** | `clawhub install summarize` | 对网页、PDF、图像、音频、YouTube 等内容生成摘要 |
-| 5 | **Gog** | `clawhub install gog` | Google 全家桶：Gmail、Calendar、Drive、Docs 一键打包 |
-| 6 | **GitHub** | `clawhub install github` | PR 管理、Issue 追踪、代码搜索、仓库操作，开发者必备 |
-| 7 | **Obsidian** | `clawhub install obsidian` | 接入本地 Obsidian 笔记库，整理笔记、知识关联 |
-
-### 进阶能力技能
-
-| 序号 | 技能 | 安装命令 | 一句话说明 |
-|------|------|---------|-----------|
-| 8 | **Self-Improving Agent** | `clawhub install self-improving-agent` | 记录经验教训和纠正措施，让龙虾持续自我改进 |
-| 9 | **Proactive Agent** | `clawhub install proactive-agent` | 赋予龙虾主动性，记住历史行为并根据环境变化自动执行任务 |
-| 10 | **Capability Evolver** | `clawhub install capability-evolver` | 让龙虾自主进化——分析已有流程，在薄弱环节创造新 Skill 辅助迭代 |
-
-> **一键安装全部**：你也可以直接告诉龙虾"帮我安装 skill-vetter、tavily-search、agent-browser"，它会帮你逐个下载安装。
-
-### 更多精选技能
-
-ClawHub 上技能数量庞大，社区项目 [awesome-openclaw-skills](https://github.com/VoltAgent/awesome-openclaw-skills) 从中精选了 **5,000+** 个高质量技能，按场景分类，过滤了大量低质和危险技能。如果上面 10 个不够用，去那里逛逛。
-
-如果你想先从“菜单式分类”挑技能，再深入看安装和配置，先去 [龙虾大学：Skills 选修地图](/cn/adopt/lobster-university)。
-
----
-
-## 5. 技能分类速查
-
-以下按使用场景分类列出更多常用技能，方便按需选装：
-
-<!-- TODO: 补充每个技能的使用截图 -->
-
-### 5.1 生产力套件
-
-| 技能 | 安装命令 | 功能 |
-|------|---------|------|
-| Google Workspace (gog) | `clawhub install gog` | Gmail、Calendar、Drive、Docs、Sheets 统一访问 |
-| Notion | `clawhub install notion` | 数据库、页面同步，长期记忆存储 |
-| Todoist | `clawhub install todoist` | 任务管理、标签、优先级、周期规则 |
-| Slack | `clawhub install slack` | 消息发送、频道管理、文件上传 |
-| Obsidian | `clawhub install obsidian` | Markdown 笔记库管理，支持 wikilink |
-
-### 5.2 开发工具
-
-| 技能 | 安装命令 | 功能 |
-|------|---------|------|
-| GitHub | `clawhub install github` | 仓库、Issue、PR 管理，REST API + GraphQL |
-| Git Operations | `clawhub install git-ops` | 安全的 Git 命令执行 |
-| Code Reviewer | `clawhub install code-reviewer` | Diff 分析、代码审查、Commit 消息生成 |
-| SQL Toolkit | `clawhub install sql-toolkit` | PostgreSQL/MySQL/SQLite 只读查询 |
-| CI/CD Pipeline | `clawhub install cicd-pipeline` | GitHub/GitLab/Jenkins 流水线控制 |
-
-### 5.3 运维与基础设施
-
-| 技能 | 安装命令 | 功能 |
-|------|---------|------|
-| DevOps Toolkit | `clawhub install devops` | Docker 编排、进程管理、健康监控 |
-| AWS Infrastructure | `clawhub install aws-infra` | EC2、S3、Lambda 对话式管理 |
-| Azure DevOps | `clawhub install azure-devops` | 项目、仓库、看板、流水线管理 |
-
-### 5.4 内容与社交
-
-| 技能 | 安装命令 | 功能 |
-|------|---------|------|
-| LinkedIn | `clawhub install linkedin` | 帖子生成、轮播图、定时发布 |
-| X (Twitter) | `clawhub install x-api` | 推文、线程、媒体附件 |
-| Blogburst | `clawhub install blogburst` | 长文内容自动拆分为社交媒体帖子 |
-
-### 5.5 个人助理
-
-| 技能 | 安装命令 | 功能 |
-|------|---------|------|
-| Weather | `clawhub install weather` | 天气、交通、航班实时数据 |
-| Calendar Pro | `clawhub install caldav-calendar` | 多日历集成、冲突检测 |
-| AgentMail | `clawhub install agentmail` | IMAP/SMTP 邮件管理、线程摘要、自动回复 |
-| Home Assistant | `clawhub install home-assistant` | 智能家居设备控制 |
-
-### 5.6 特殊技能
-
-| 技能 | 安装命令 | 功能 |
-|------|---------|------|
-| Playwright | `clawhub install playwright` | 无头浏览器自动化、表单填写、数据提取 |
-| Hacker News | `clawhub install hackernews` | 技术新闻摘要和个性化推送 |
-| Self-Improving | `clawhub install self-improving` | 记录成功/失败执行，自我优化模式识别 |
-
-## 6. 配置技能
-
-安装后可以随时修改技能配置。技能配置统一存放在工作区级的 `openclaw.json` 中：
-
-```json
+```json5
 {
-  "skills": {
-    "weather": {
-      "api_key": "your_api_key",
-      "default_city": "Beijing",
-      "units": "metric",
-      "language": "zh_CN"
+  agents: {
+    defaults: {
+      model: {
+        primary: "anthropic/claude-opus-4-6"
+      }
     }
   }
 }
 ```
 
-也可以通过交互式命令配置：
-
-```bash
-openclaw config
-```
-
-对于需要 API Key 的技能，安装时会自动引导你输入。你也可以后续通过 `openclaw config` 或直接编辑 `openclaw.json` 修改。
-
-<details>
-<summary>展开：创建和发布自定义技能</summary>
-
-## 7. 创建自定义技能
-
-如果 ClawHub 上没有你需要的技能，可以自己创建。
-
-### 7.1 最小化技能
-
-创建一个查询 IP 地址的技能，只需要一个 `SKILL.md`：
-
-```markdown
----
-name: my-ip
-description: 查询当前公网 IP 地址和地理位置
-version: 1.0.0
----
-
-# IP 查询技能
-
-当用户询问 IP 地址或网络位置时，执行以下命令：
-
-curl -s https://ipinfo.io/json
-
-返回结果中包含 IP、城市、地区、国家、运营商等信息。
-```
-
-### 7.2 安装自定义技能
-
-```bash
-# 从本地目录安装
-clawhub install ./my-ip
-
-# 或直接复制到技能目录
-cp -r my-ip ~/.openclaw/skills/
-```
-
-### 7.3 发布到 ClawHub
-
-如果你的技能对他人有用，可以提交到 ClawHub：
-
-```bash
-# 1. Fork github.com/openclaw/clawhub
-# 2. 添加你的技能目录
-# 3. 提交 Pull Request
-```
-
-### 7.4 使用 Skill Seekers 自动生成技能
-
-如果你想为特定技术栈或文档快速生成技能，可以使用 **Skill Seekers** 工具。它能自动将文档网站、GitHub 仓库、PDF 和视频转换为 Claude/Gemini/OpenAI Skills。
-
-**安装**：
-```bash
-pip install skill-seekers
-```
-
-**从文档网站生成技能**：
-```bash
-# 为 React 文档生成技能
-skill-seekers create https://docs.react.dev/
-
-# 从 GitHub 仓库生成
-skill-seekers create facebook/react
-
-# 从本地项目生成
-skill-seekers create ./my-project
-```
-
-**导出为 OpenClaw 可用格式**：
-```bash
-# 打包为 Claude Skill（可导入 OpenClaw）
-skill-seekers package output/react --target claude
-```
-
-**Skill Seekers 的优势**：
-- ⚡ 99%  faster — 数天的手动准备 → 15-45 分钟
-- 🎯 高质量 SKILL.md — 500+ 行的完整技能文件
-- 📊 RAG-ready 分块 — 智能分块保留代码块和上下文
-- 🌐 多源支持 — 文档 + GitHub + PDF + 视频
-
-> 📖 更多信息：[Skill Seekers GitHub](https://github.com/yusufkaraaslan/Skill_Seekers)
+保存后大部分配置会自动生效（详见[第八章 配置热更新](/cn/adopt/chapter8/#配置热更新)）。
 
 </details>
 
-## 8. 飞书插件：技能实战案例
+---
 
-飞书官方插件是一个典型的复合技能，展示了技能如何深度集成外部服务。安装飞书插件后（安装步骤参见第三章 2.4 节），OpenClaw 不仅能通过飞书收发消息，还能直接操作飞书的办公数据：
+## 2. 主模型、备用模型、图片模型
 
-| 能力 | 说明 |
+每次对话，OpenClaw 按这个顺序选模型：
+
+```
+主模型（primary）
+  ↓ 挂了或限流
+备用模型列表（fallbacks），依次尝试
+  ↓ 每个模型内部
+同提供商的多个 API Key 之间轮换
+```
+
+**配置建议**：主模型选你用得到的最强的；备用模型做兜底或省钱。
+
+发图片时，如果主模型不支持图片输入，OpenClaw 会自动切到 `imageModel`：
+
+```json5
+{
+  agents: {
+    defaults: {
+      imageModel: {
+        primary: "openai/gpt-5.1-codex",
+        fallbacks: ["google/gemini-3-pro-preview"]
+      }
+    }
+  }
+}
+```
+
+<details>
+<summary>想限制只能用哪些模型？</summary>
+
+设置 `agents.defaults.models` 就启用了**白名单**，只有列表里的模型才能使用。同时还能给模型起别名，方便聊天中快速切换：
+
+```json5
+{
+  agents: {
+    defaults: {
+      model: { primary: "anthropic/claude-sonnet-4-5" },
+      models: {
+        "anthropic/claude-sonnet-4-5": { alias: "Sonnet" },
+        "anthropic/claude-opus-4-6": { alias: "Opus" },
+      }
+    }
+  }
+}
+```
+
+设置后，聊天中 `/model Sonnet` 就能直接切换，不用记完整 ID。不设置 `models` 则无限制，自由切换任意模型。
+
+</details>
+
+---
+
+## 3. 聊天中切换模型
+
+无需重启，随时切换：
+
+| 命令 | 效果 |
 |------|------|
-| 消息 | 群聊/单聊历史搜索、消息发送、文件下载 |
-| 文档 | 创建和编辑飞书云文档 |
-| 多维表格 | 表格管理与数据操作（类似 Airtable） |
-| 日程 | 日历查看、会议创建、忙闲查询 |
-| 任务 | 任务和清单的创建与管理 |
+| `/model` | 打开模型列表，用数字选 |
+| `/model 3` | 直接选第 3 个 |
+| `/model openai/gpt-5.2` | 直接指定模型 ID |
+| `/model status` | 查看当前模型和认证状态 |
 
-使用示例：
+> 模型 ID 中的第一个 `/` 分隔提供商和模型名。OpenRouter 上的模型名本身含 `/`，必须带提供商前缀：`/model openrouter/moonshotai/kimi-k2`。
 
-```
-帮我在飞书上创建一个项目周报文档，包含本周完成的任务和下周计划
+---
+
+## 4. 命令行管理模型
+
+### 常用命令
+
+```bash
+openclaw models status                          # 查看当前主模型 + 备用 + 认证概览
+openclaw models list                            # 查看已配置的模型
+openclaw models list --all                      # 查看全部可用模型
+openclaw models set openai/gpt-5.1-codex        # 设置主模型
+openclaw models set-image google/gemini-3-pro-preview  # 设置图片模型
 ```
 
-```
-查看我今天的飞书日程，如果有冲突的会议帮我标记出来
+### 别名（让切换更方便）
+
+```bash
+openclaw models aliases add Sonnet anthropic/claude-sonnet-4-5
+openclaw models aliases add Opus anthropic/claude-opus-4-6
+openclaw models aliases list
+openclaw models aliases remove Sonnet
 ```
 
-```
-在项目管理多维表格中添加一条新任务：完成 API 文档编写，截止日期下周五
-```
+### 备用模型
 
-这种深度集成体现了技能系统的核心价值：通过标准化的 SKILL.md 接口，将复杂的外部服务能力无缝注入 OpenClaw 的执行循环中。
+```bash
+openclaw models fallbacks list
+openclaw models fallbacks add openai/gpt-5.2
+openclaw models fallbacks add google/gemini-3-pro-preview
+openclaw models fallbacks remove openai/gpt-5.2
+openclaw models fallbacks clear
+```
 
 <details>
-<summary>展开：性能考量与安全提示</summary>
+<summary>models status 有哪些输出标志？</summary>
 
-## 9. 技能系统的性能考量
+- `--plain`：只输出当前主模型名（适合脚本）
+- `--json`：机器可读 JSON
+- `--check`：自动化检查（缺失/过期返回 exit 1，即将过期返回 exit 2）
 
-技能并非越多越好。每个活跃技能都会增加上下文加载量，影响响应速度。
-
-### 技能加载机制
-
-OpenClaw 采用**三级加载优先级**：
-
-| 优先级 | 来源 | 路径 | 说明 |
-|--------|------|------|------|
-| 1（最高） | 工作区级 | `~/.openclaw/workspace/skills/` | 你手动放置或针对当前工作区安装的技能 |
-| 2 | 共享级 | `~/.openclaw/skills/` | `clawhub install` 安装的全局技能 |
-| 3（最低） | 内置级 | OpenClaw 安装目录 | 随 OpenClaw 一起发布的默认技能 |
-
-同名技能按优先级覆盖——如果工作区有一个 `web-search`，它会屏蔽全局和内置的同名技能。
-
-每次对话开始时，OpenClaw 会生成一份**技能快照**（snapshot），将所有活跃技能的 SKILL.md 内容注入上下文。技能采用**懒加载**策略：只有在对话中被触发（匹配到关键词或被 AI 主动选用）时，才会执行技能脚本。
-
-### 性能影响与建议
-
-| 技能数量 | 上下文占用 | 响应速度影响 | 建议 |
-|---------|-----------|-------------|------|
-| 1-5 个 | 低 | 几乎无感 | 新手推荐 |
-| 5-10 个 | 中等 | 略有延迟 | 日常使用合理上限 |
-| 10-20 个 | 较高 | 明显变慢 | 建议禁用不常用的 |
-| 20+ 个 | 很高 | 严重影响 | 不推荐 |
-
-**按需安装**：只安装真正需要的技能。5-10 个常用技能是一个合理的数量。
-
-**定期清理**：用 `clawhub list` 查看所有已安装技能，用 `clawhub uninstall <技能名>` 卸载不再使用的技能，保持系统精简。
-
-```bash
-# 查看当前安装了哪些技能
-clawhub list
-
-# 只看活跃的技能
-clawhub list --active
-
-# 卸载不需要的技能
-clawhub uninstall old-unused-skill
-```
-
-**保护敏感信息**：技能配置中的 API 密钥存储在本地，但仍要注意不要将 `~/.openclaw/skills/` 目录上传到公开仓库。
-
-**测试后再用**：新安装的技能先在测试环境试用，确认没问题后再用于生产任务。对于未经审计的第三方技能，建议在 Docker 沙箱中运行。
-
-> **安全警告**：2026 年 2 月的安全审计（ClawHavoc 事件）发现 ClawHub 上约 12% 的技能存在恶意行为或安全漏洞。OpenClaw 团队已进行清理，但安装第三方技能时仍需保持警惕。建议优先使用高星标技能，并检查 SKILL.md 中的指令内容。
-
-**安装安全守卫**：强烈建议安装 `skill-vetter`（详见本章第 4 节），它会自动扫描你后续安装的每一个技能，检测是否存在窃取 API Key、上传个人信息等危险行为：
-
-```bash
-clawhub install skill-vetter
-```
+输出内容包括：当前主模型和备用模型、每个提供商的认证状态、24 小时内即将过期的 OAuth Token 警告。
 
 </details>
 
 <details>
-<summary>展开阅读：技能与 MCP 的关系</summary>
+<summary>想找 OpenRouter 上最好的免费模型？</summary>
 
-## 10. 技能与 MCP 的关系
+```bash
+openclaw models scan              # 自动探测并排序免费模型
+openclaw models scan --no-probe   # 只看列表，不探测
+openclaw models scan --set-default  # 扫完直接设为默认
+```
 
-OpenClaw 的技能系统与 MCP（Model Context Protocol）是两个不同层面的概念：
-
-- **技能（Skills）**：提示词层面的指令包，定义 Agent 的行为规则和工具使用方式
-- **MCP**：工具层面的进程协议，提供外部工具的标准化接口
-
-截至目前，OpenClaw 并未原生支持 MCP（相关 Issue #4834 已关闭，状态为"not planned"）。但社区已有大量 MCP 包装器（wrapper），可将 MCP 服务器的能力通过技能接口暴露给 OpenClaw 使用。
+排名依据：图片支持 → 工具调用延迟 → 上下文窗口 → 参数量。需要 `OPENROUTER_API_KEY`。
 
 </details>
 
 ---
 
-**下一步**：[第六章 外部服务集成](/cn/adopt/chapter6/)
+## 5. 选择并配置提供商
+
+OpenClaw 支持两类提供商：**内置**（直接设 API Key 就能用）和**自定义**（通过 `models.providers` 接入任何兼容接口）。
+
+### 5.1 内置提供商
+
+直接设 API Key 即可，无需额外配置：
+
+| 提供商 | provider 标识 | 认证方式 | 示例模型 |
+|--------|-------------|---------|---------|
+| OpenAI | `openai` | `OPENAI_API_KEY` | `openai/gpt-5.1-codex` |
+| Anthropic | `anthropic` | `ANTHROPIC_API_KEY` | `anthropic/claude-opus-4-6` |
+| OpenAI Code (Codex) | `openai-codex` | OAuth 登录 | `openai-codex/gpt-5.3-codex` |
+| OpenCode Zen | `opencode` | `OPENCODE_API_KEY` | `opencode/claude-opus-4-6` |
+| Google Gemini | `google` | `GEMINI_API_KEY` | `google/gemini-3-pro-preview` |
+| OpenRouter | `openrouter` | `OPENROUTER_API_KEY` | `openrouter/anthropic/claude-sonnet-4-5` |
+| Z.AI (GLM) | `zai` | `ZAI_API_KEY` | `zai/glm-5` |
+| xAI | `xai` | `XAI_API_KEY` | — |
+| Mistral | `mistral` | `MISTRAL_API_KEY` | `mistral/mistral-large-latest` |
+| Groq | `groq` | `GROQ_API_KEY` | — |
+| Cerebras | `cerebras` | `CEREBRAS_API_KEY` | — |
+| GitHub Copilot | `github-copilot` | `GH_TOKEN` | — |
+| Hugging Face | `huggingface` | `HF_TOKEN` | `huggingface/deepseek-ai/DeepSeek-R1` |
+| Kilo Gateway | `kilocode` | `KILOCODE_API_KEY` | `kilocode/anthropic/claude-opus-4.6` |
+| Vercel AI Gateway | `vercel-ai-gateway` | `AI_GATEWAY_API_KEY` | `vercel-ai-gateway/anthropic/claude-opus-4.6` |
+
+> **更多提供商**及获取地址见[附录 E 模型提供商选型指南](/cn/appendix/appendix-e)。
+
+<details>
+<summary>OpenAI 配置详情</summary>
+
+```json5
+{
+  agents: {
+    defaults: { model: { primary: "openai/gpt-5.1-codex" } }
+  }
+}
+```
+
+**认证**：设置环境变量 `OPENAI_API_KEY`，或在向导中选择 `openai-api-key`。
+
+**传输协议**：默认 `auto`（WebSocket 优先，SSE 兜底）。可按模型覆盖：
+
+```json5
+{
+  agents: {
+    defaults: {
+      models: {
+        "openai/gpt-5.1-codex": {
+          params: { transport: "sse" }  // 强制使用 SSE
+        }
+      }
+    }
+  }
+}
+```
+
+CLI 快捷设置：`openclaw onboard --auth-choice openai-api-key`
+
+</details>
+
+<details>
+<summary>Anthropic 配置详情</summary>
+
+```json5
+{
+  agents: {
+    defaults: { model: { primary: "anthropic/claude-opus-4-6" } }
+  }
+}
+```
+
+**认证方式（二选一）**：
+
+1. **API Key（推荐）**：设置 `ANTHROPIC_API_KEY`
+2. **setup-token**：运行 `claude setup-token`，然后 `openclaw models status` 确认
+
+> **注意**：setup-token 是技术兼容方案，Anthropic 曾限制过在 Claude Code 以外使用订阅凭证。建议优先使用 API Key。
+
+CLI 快捷设置：`openclaw onboard --auth-choice token`
+
+</details>
+
+<details>
+<summary>OpenAI Code (Codex) 配置详情</summary>
+
+OpenAI Codex 使用 OAuth 登录（ChatGPT 账号），**明确支持**在 OpenClaw 等外部工具中使用。
+
+```json5
+{
+  agents: {
+    defaults: { model: { primary: "openai-codex/gpt-5.3-codex" } }
+  }
+}
+```
+
+CLI 快捷设置：`openclaw onboard --auth-choice openai-codex` 或 `openclaw models auth login --provider openai-codex`
+
+</details>
+
+<details>
+<summary>Google Vertex / Antigravity / Gemini CLI</summary>
+
+除了 API Key 方式的 Google Gemini，还有三个 Google 相关提供商：
+
+| 提供商 | 标识 | 认证方式 |
+|--------|------|---------|
+| Google Vertex | `google-vertex` | gcloud ADC |
+| Antigravity | `google-antigravity` | OAuth 插件 |
+| Gemini CLI | `google-gemini-cli` | OAuth 插件 |
+
+**Antigravity / Gemini CLI** 是非官方集成，需先启用插件：
+
+```bash
+# Antigravity
+openclaw plugins enable google-antigravity-auth
+openclaw models auth login --provider google-antigravity --set-default
+
+# Gemini CLI
+openclaw plugins enable google-gemini-cli-auth
+openclaw models auth login --provider google-gemini-cli --set-default
+```
+
+> **风险提示**：部分用户反映使用第三方客户端后 Google 账号受限。建议使用非关键账号，并自行评估 Google 服务条款。
+
+</details>
+
+### 5.2 国产模型提供商
+
+#### 月之暗面 Kimi（Moonshot AI）
+
+```json5
+{
+  agents: {
+    defaults: { model: { primary: "moonshot/kimi-k2.5" } },
+  },
+  models: {
+    mode: "merge",
+    providers: {
+      moonshot: {
+        baseUrl: "https://api.moonshot.ai/v1",
+        apiKey: "${MOONSHOT_API_KEY}",
+        api: "openai-completions",
+        models: [{ id: "kimi-k2.5", name: "Kimi K2.5" }],
+      }
+    }
+  }
+}
+```
+
+可用模型：`kimi-k2.5`、`kimi-k2-0905-preview`、`kimi-k2-turbo-preview`、`kimi-k2-thinking`、`kimi-k2-thinking-turbo`
+
+<details>
+<summary>Kimi Coding（Anthropic 兼容接口）</summary>
+
+```json5
+{
+  env: { KIMI_API_KEY: "sk-..." },
+  agents: {
+    defaults: { model: { primary: "kimi-coding/k2p5" } },
+  }
+}
+```
+
+</details>
+
+#### 火山引擎（豆包 Doubao）
+
+```json5
+{
+  agents: {
+    defaults: { model: { primary: "volcengine/doubao-seed-1-8-251228" } },
+  }
+}
+```
+
+CLI：`openclaw onboard --auth-choice volcengine-api-key`
+
+<details>
+<summary>火山引擎全部可用模型</summary>
+
+**标准模型**（provider: `volcengine`）：
+
+| 模型 ID | 名称 |
+|---------|------|
+| `volcengine/doubao-seed-1-8-251228` | 豆包 Seed 1.8 |
+| `volcengine/doubao-seed-code-preview-251028` | 豆包 Seed Code |
+| `volcengine/kimi-k2-5-260127` | Kimi K2.5 |
+| `volcengine/glm-4-7-251222` | GLM 4.7 |
+| `volcengine/deepseek-v3-2-251201` | DeepSeek V3.2 128K |
+
+**编码模型**（provider: `volcengine-plan`）：
+
+| 模型 ID | 名称 |
+|---------|------|
+| `volcengine-plan/ark-code-latest` | ARK Code |
+| `volcengine-plan/doubao-seed-code` | 豆包 Seed Code |
+| `volcengine-plan/kimi-k2.5` | Kimi K2.5 |
+| `volcengine-plan/kimi-k2-thinking` | Kimi K2 Thinking |
+| `volcengine-plan/glm-4.7` | GLM 4.7 |
+
+</details>
+
+#### 通义千问 Qwen（免费 OAuth）
+
+OAuth 设备码认证，免费使用 Qwen Coder + Vision：
+
+```bash
+openclaw plugins enable qwen-portal-auth
+openclaw models auth login --provider qwen-portal --set-default
+```
+
+可用模型：`qwen-portal/coder-model`、`qwen-portal/vision-model`
+
+<details>
+<summary>更多国产提供商（BytePlus、硅基流动、DeepSeek 等）</summary>
+
+**BytePlus**（国际版火山引擎，共享模型目录）：
+
+```json5
+{
+  agents: {
+    defaults: { model: { primary: "byteplus/seed-1-8-251228" } },
+  }
+}
+```
+
+CLI：`openclaw onboard --auth-choice byteplus-api-key`
+
+其他提供商均通过 `models.providers` 以 OpenAI 兼容方式接入，配置格式参考 5.4 节：
+
+| 提供商 | API 地址 | 备注 |
+|--------|---------|------|
+| 硅基流动 SiliconFlow | `https://api.siliconflow.cn/v1` | 新用户 16 元免费额度 |
+| 深度求索 DeepSeek | `https://api.deepseek.com/v1` | — |
+| 阶跃星辰 StepFun | OpenAI 兼容 | — |
+| 稀宇科技 MiniMax | `openclaw onboard --auth-choice minimax-api` | — |
+| 智谱 Z.AI | 内置提供商，`ZAI_API_KEY` | — |
+| 混元（腾讯） | OpenAI 兼容 | — |
+| 文心一言（百度） | OpenAI 兼容 | — |
+
+配置方式：将 5.4 节示例中的 `baseUrl` 和 `apiKey` 替换为对应提供商即可。
+
+</details>
+
+### 5.3 本地模型
+
+#### Ollama
+
+先拉取模型，再配置：
+
+```bash
+ollama pull llama3.3
+```
+
+```json5
+{
+  agents: {
+    defaults: { model: { primary: "ollama/llama3.3" } }
+  }
+}
+```
+
+Ollama 在 `http://127.0.0.1:11434/v1` 运行时会被自动发现，无需额外配置。
+
+<details>
+<summary>vLLM（高性能本地推理服务器）</summary>
+
+```bash
+export VLLM_API_KEY="vllm-local"
+```
+
+```json5
+{
+  agents: {
+    defaults: { model: { primary: "vllm/your-model-id" } }
+  }
+}
+```
+
+默认连接 `http://127.0.0.1:8000/v1`。
+
+</details>
+
+### 5.4 自定义提供商（通用方式）
+
+任何 OpenAI 或 Anthropic 兼容的 API 都可以通过 `models.providers` 接入：
+
+```json5
+{
+  agents: {
+    defaults: {
+      model: { primary: "lmstudio/minimax-m2.5-gs32" },
+      models: { "lmstudio/minimax-m2.5-gs32": { alias: "Minimax" } },
+    }
+  },
+  models: {
+    providers: {
+      lmstudio: {
+        baseUrl: "http://localhost:1234/v1",
+        apiKey: "LMSTUDIO_KEY",
+        api: "openai-completions",
+        models: [{
+          id: "minimax-m2.5-gs32",
+          name: "MiniMax M2.5",
+          contextWindow: 200000,
+          maxTokens: 8192,
+        }]
+      }
+    }
+  }
+}
+```
+
+<details>
+<summary>自定义提供商的可选字段</summary>
+
+在 `models` 数组中，每个模型对象支持以下字段（均可省略）：
+
+| 字段 | 默认值 | 说明 |
+|------|--------|------|
+| `reasoning` | `false` | 是否支持推理/思考链 |
+| `input` | `["text"]` | 支持的输入类型 |
+| `cost` | 全为 0 | `{ input, output, cacheRead, cacheWrite }` |
+| `contextWindow` | `200000` | 上下文窗口大小 |
+| `maxTokens` | `8192` | 最大输出 Token 数 |
+
+建议设置与你的代理/模型实际限制匹配的值。
+
+**API 兼容模式**（`api` 字段）：
+- `openai-completions`：OpenAI Chat Completions 兼容
+- `anthropic-messages`：Anthropic Messages 兼容
+
+</details>
+
+<details>
+<summary>models.json 注册表机制</summary>
+
+自定义提供商配置会写入 `~/.openclaw/agents/<agentId>/models.json`。默认使用 `merge` 模式（与内置目录合并），也可设置 `models.mode: "replace"` 完全替换。
+
+合并优先级规则：
+- 已有的非空 `baseUrl` 优先
+- 非 SecretRef 管理的 `apiKey` 优先
+- SecretRef 管理的 Key 会从源标记（环境变量名等）刷新，不直接存储明文
+- 其他字段从配置和标准目录刷新
+
+</details>
+
+---
+
+## 6. 进阶：多 Key 轮换与故障转移
+
+日常使用不需要关心这些——OpenClaw 出错时会自动处理。但如果你想精确控制，展开看详情。
+
+<details>
+<summary>多个 API Key 自动轮换</summary>
+
+有多个 API Key 时，遇到限流（429）会自动切换到下一个。通过环境变量配置：
+
+```bash
+# 方式一：逗号分隔
+OPENAI_API_KEYS="sk-key1,sk-key2,sk-key3"
+
+# 方式二：编号列表
+OPENAI_API_KEY_1="sk-key1"
+OPENAI_API_KEY_2="sk-key2"
+
+# 方式三：实时热切（最高优先级）
+OPENCLAW_LIVE_OPENAI_KEY="sk-hot-key"
+```
+
+优先级：`OPENCLAW_LIVE_*` > `_API_KEYS`（逗号列表）> `_API_KEY`（单个）> `_API_KEY_*`（编号）
+
+轮换只在限流错误时触发；非限流错误直接失败，不尝试下一个 Key。
+
+</details>
+
+<details>
+<summary>模型故障转移（Failover）</summary>
+
+故障转移分两阶段：先在同提供商的多个 Key 之间轮换，全部失败后切换到 `fallbacks` 列表中的下一个模型。
+
+```json5
+{
+  agents: {
+    defaults: {
+      model: {
+        primary: "anthropic/claude-opus-4-6",
+        fallbacks: [
+          "openai/gpt-5.1-codex",
+          "google/gemini-3-pro-preview"
+        ]
+      }
+    }
+  }
+}
+```
+
+Anthropic 全部失败 → 自动切 OpenAI；OpenAI 也失败 → 切 Google。用户无感。
+
+**冷却机制**：Key 出错后进入冷却，使用指数退避：
+
+| 失败次数 | 冷却时间 |
+|---------|---------|
+| 第 1 次 | 1 分钟 |
+| 第 2 次 | 5 分钟 |
+| 第 3 次 | 25 分钟 |
+| 第 4 次+ | 1 小时（上限） |
+
+余额不足则触发长期禁用（起始 5 小时，每次翻倍，上限 24 小时）。建议 OpenRouter 用户开启 Auto Top Up。
+
+**会话粘性**：同一会话内 OpenClaw 会固定使用选中的认证配置，不会每次请求都轮换（有利于缓存命中）。想锁定特定配置，聊天中用 `/model …@<profileId>`。
+
+</details>
+
+---
+
+## 7. 常见问题
+
+**切换模型后没有回复？**
+检查是否设置了 `agents.defaults.models` 白名单——只有列表里的模型才能使用。用 `/model list` 查看可用模型，或删除 `agents.defaults.models` 取消限制。
+
+**模型 ID 里的 `/` 怎么处理？**
+第一个 `/` 分隔提供商和模型名。OpenRouter 上的模型名本身含 `/`，必须带提供商前缀：`openrouter/moonshotai/kimi-k2`。
+
+**怎么确认现在用的是哪个模型？**
+运行 `openclaw models status` 或聊天中发 `/model status`。
+
+**本地模型和云端模型能混用吗？**
+可以，把本地模型设为 fallback，云端挂了自动切本地：
+
+```json5
+{
+  agents: {
+    defaults: {
+      model: {
+        primary: "anthropic/claude-opus-4-6",
+        fallbacks: ["ollama/llama3.3"]
+      }
+    }
+  }
+}
+```
+
+**想省钱？**
+主模型用便宜的，旗舰模型做备用；同时配多个 Key 分散限流：
+
+```json5
+{
+  agents: {
+    defaults: {
+      model: {
+        primary: "anthropic/claude-sonnet-4-5",
+        fallbacks: ["anthropic/claude-opus-4-6"]
+      }
+    }
+  }
+}
+```
+
+```bash
+ANTHROPIC_API_KEYS="sk-key1,sk-key2"
+```

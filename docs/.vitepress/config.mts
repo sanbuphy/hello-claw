@@ -27,8 +27,8 @@ export default defineConfig({
           label: '目录'
         },
         nav: [
-          { text: '领养龙虾', link: '/cn/adopt/chapter0' },
-          { text: '🎓 龙虾大学', link: '/cn/adopt/lobster-university' },
+          { text: '领养龙虾', link: '/cn/adopt/intro' },
+          { text: '龙虾大学', link: '/cn/university/intro.html', activeMatch: '^/cn/university/' },
           { text: '构建龙虾', link: '/cn/build/' },
           { text: 'GitHub', link: 'https://github.com/datawhalechina/hello-claw' },
         ],
@@ -56,30 +56,54 @@ export default defineConfig({
             {
               text: '领养 Claw（使用篇）',
               items: [
-                { text: '第0章 写在开头', link: '/cn/adopt/chapter0' },
-                { text: '第1章 拥有你的第一个 QQ AI 助手', link: '/cn/adopt/chapter1' },
-                { text: '第2章 命令行与配置详解', link: '/cn/adopt/chapter2' },
-                { text: '第3章 移动端接入', link: '/cn/adopt/chapter3' },
-                { text: '第4章 自动化任务入门', link: '/cn/adopt/chapter4' },
-                { text: '第5章 Skills 技能系统', link: '/cn/adopt/chapter5' },
-                { text: '第6章 外部服务集成', link: '/cn/adopt/chapter6' },
-                { text: '第7章 生产环境部署', link: '/cn/adopt/chapter7' },
-                { text: '第8章 多模型与成本优化', link: '/cn/adopt/chapter8' },
-                { text: '第9章 个人助理与内容创作', link: '/cn/adopt/chapter9' },
-                { text: '第10章 开发者效率提升', link: '/cn/adopt/chapter10' },
-                { text: '第11章 故障排查与优化', link: '/cn/adopt/chapter11' }
+                { text: '写在开头', link: '/cn/adopt/intro' },
+                {
+                  text: '🔵 安装',
+                  collapsed: false,
+                  items: [
+                    { text: '第1章 AutoClaw 一键安装', link: '/cn/adopt/chapter1' },
+                    { text: '第2章 OpenClaw 手动安装', link: '/cn/adopt/chapter2' },
+                    { text: '第3章 初始配置向导', link: '/cn/adopt/chapter3' },
+                  ]
+                },
+                {
+                  text: '🟢 核心配置',
+                  collapsed: false,
+                  items: [
+                    { text: '第4章 聊天平台接入', link: '/cn/adopt/chapter4' },
+                    { text: '第5章 模型管理', link: '/cn/adopt/chapter5' },
+                    { text: '第6章 智能体管理', link: '/cn/adopt/chapter6' },
+                  ]
+                },
+                {
+                  text: '🟡 扩展运维',
+                  collapsed: false,
+                  items: [
+                    { text: '第7章 工具与定时任务', link: '/cn/adopt/chapter7' },
+                    { text: '第8章 网关运维', link: '/cn/adopt/chapter8' },
+                    { text: '第9章 远程访问与网络', link: '/cn/adopt/chapter9' },
+                  ]
+                },
+                {
+                  text: '🔴 安全与客户端',
+                  collapsed: false,
+                  items: [
+                    { text: '第10章 安全防护与威胁模型', link: '/cn/adopt/chapter10' },
+                    { text: '第11章 Web 界面与客户端', link: '/cn/adopt/chapter11' },
+                  ]
+                },
               ]
             },
             {
               text: '附录',
               items: [
-                { text: '附录 A：命令速查表', link: '/cn/appendix/appendix-a' },
-                { text: '附录 B：配置文件详解', link: '/cn/appendix/appendix-b' },
-                { text: '附录 C：技能开发模板', link: '/cn/appendix/appendix-c' },
-                { text: '附录 D：学习资源汇总', link: '/cn/appendix/appendix-d' },
-                { text: '附录 E：云服务部署指南', link: '/cn/appendix/appendix-e' },
-                { text: '附录 F：社区之声与生态展望', link: '/cn/appendix/appendix-f' },
-                { text: '附录 G：安全防护指南', link: '/cn/appendix/appendix-g' }
+                { text: '附录 A：学习资源汇总', link: '/cn/appendix/appendix-a' },
+                { text: '附录 B：社区之声与生态展望', link: '/cn/appendix/appendix-b' },
+                { text: '附录 C：类 Claw 方案对比与选型', link: '/cn/appendix/appendix-c' },
+                { text: '附录 D：技能开发与发布指南', link: '/cn/appendix/appendix-d' },
+                { text: '附录 E：模型提供商选型指南', link: '/cn/appendix/appendix-e' },
+                { text: '附录 F：命令速查表', link: '/cn/appendix/appendix-f' },
+                { text: '附录 G：配置文件详解', link: '/cn/appendix/appendix-g' }
               ]
             }
           ],
@@ -87,30 +111,54 @@ export default defineConfig({
             {
               text: '领养 Claw（使用篇）',
               items: [
-                { text: '第0章 写在开头', link: '/cn/adopt/chapter0' },
-                { text: '第1章 拥有你的第一个 QQ AI 助手', link: '/cn/adopt/chapter1' },
-                { text: '第2章 命令行与配置详解', link: '/cn/adopt/chapter2' },
-                { text: '第3章 移动端接入', link: '/cn/adopt/chapter3' },
-                { text: '第4章 自动化任务入门', link: '/cn/adopt/chapter4' },
-                { text: '第5章 Skills 技能系统', link: '/cn/adopt/chapter5' },
-                { text: '第6章 外部服务集成', link: '/cn/adopt/chapter6' },
-                { text: '第7章 生产环境部署', link: '/cn/adopt/chapter7' },
-                { text: '第8章 多模型与成本优化', link: '/cn/adopt/chapter8' },
-                { text: '第9章 个人助理与内容创作', link: '/cn/adopt/chapter9' },
-                { text: '第10章 开发者效率提升', link: '/cn/adopt/chapter10' },
-                { text: '第11章 故障排查与优化', link: '/cn/adopt/chapter11' }
+                { text: '写在开头', link: '/cn/adopt/intro' },
+                {
+                  text: '🔵 安装',
+                  collapsed: false,
+                  items: [
+                    { text: '第1章 AutoClaw 一键安装', link: '/cn/adopt/chapter1' },
+                    { text: '第2章 OpenClaw 手动安装', link: '/cn/adopt/chapter2' },
+                    { text: '第3章 初始配置向导', link: '/cn/adopt/chapter3' },
+                  ]
+                },
+                {
+                  text: '🟢 核心配置',
+                  collapsed: false,
+                  items: [
+                    { text: '第4章 聊天平台接入', link: '/cn/adopt/chapter4' },
+                    { text: '第5章 模型管理', link: '/cn/adopt/chapter5' },
+                    { text: '第6章 智能体管理', link: '/cn/adopt/chapter6' },
+                  ]
+                },
+                {
+                  text: '🟡 扩展运维',
+                  collapsed: false,
+                  items: [
+                    { text: '第7章 工具与定时任务', link: '/cn/adopt/chapter7' },
+                    { text: '第8章 网关运维', link: '/cn/adopt/chapter8' },
+                    { text: '第9章 远程访问与网络', link: '/cn/adopt/chapter9' },
+                  ]
+                },
+                {
+                  text: '🔴 安全与客户端',
+                  collapsed: false,
+                  items: [
+                    { text: '第10章 安全防护与威胁模型', link: '/cn/adopt/chapter10' },
+                    { text: '第11章 Web 界面与客户端', link: '/cn/adopt/chapter11' },
+                  ]
+                },
               ]
             },
             {
               text: '附录',
               items: [
-                { text: '附录 A：命令速查表', link: '/cn/appendix/appendix-a' },
-                { text: '附录 B：配置文件详解', link: '/cn/appendix/appendix-b' },
-                { text: '附录 C：技能开发模板', link: '/cn/appendix/appendix-c' },
-                { text: '附录 D：学习资源汇总', link: '/cn/appendix/appendix-d' },
-                { text: '附录 E：云服务部署指南', link: '/cn/appendix/appendix-e' },
-                { text: '附录 F：社区之声与生态展望', link: '/cn/appendix/appendix-f' },
-                { text: '附录 G：安全防护指南', link: '/cn/appendix/appendix-g' }
+                { text: '附录 A：学习资源汇总', link: '/cn/appendix/appendix-a' },
+                { text: '附录 B：社区之声与生态展望', link: '/cn/appendix/appendix-b' },
+                { text: '附录 C：类 Claw 方案对比与选型', link: '/cn/appendix/appendix-c' },
+                { text: '附录 D：技能开发与发布指南', link: '/cn/appendix/appendix-d' },
+                { text: '附录 E：模型提供商选型指南', link: '/cn/appendix/appendix-e' },
+                { text: '附录 F：命令速查表', link: '/cn/appendix/appendix-f' },
+                { text: '附录 G：配置文件详解', link: '/cn/appendix/appendix-g' }
               ]
             }
           ],
@@ -136,6 +184,20 @@ export default defineConfig({
                 { text: '第15章 完整定制案例', link: '/cn/build/chapter15' }
               ]
             }
+          ],
+          '/cn/university/': [
+            {
+              text: '龙虾大学',
+              items: [
+                { text: '写在开头', link: '/cn/university/intro' },
+                { text: 'Skills 选修指南', link: '/cn/university/' },
+                { text: '邮箱助手实战（163）', link: '/cn/university/email-assistant/' },
+                { text: '多智能体协作（HiClaw）', link: '/cn/university/multi-claw-hiclaw/' },
+                { text: '安全防护清单', link: '/cn/university/security/' },
+                { text: 'Vibe Coding 实战', link: '/cn/university/vibe-coding/' },
+                { text: '金融实战', link: '/cn/university/finance.html' }
+              ]
+            }
           ]
         },
         socialLinks: [
@@ -158,7 +220,7 @@ export default defineConfig({
       themeConfig: {
         logo: '🦞',
         nav: [
-          { text: 'Adopt', link: '/en/adopt/chapter0' },
+          { text: 'Adopt', link: '/en/adopt/intro' },
           { text: 'Build', link: '/en/build/' },
           { text: 'GitHub', link: 'https://github.com/datawhalechina/hello-claw' },
         ],
@@ -167,7 +229,7 @@ export default defineConfig({
             {
               text: 'Adopt Claw (User Guide)',
               items: [
-                { text: 'Chapter 0: Introduction', link: '/en/adopt/chapter0' },
+                { text: 'Chapter 0: Introduction', link: '/en/adopt/intro' },
                 { text: 'Chapter 1: Quick Start', link: '/en/adopt/chapter1' },
                 { text: 'Chapter 2: Understanding OpenClaw', link: '/en/adopt/chapter2' },
                 { text: 'Chapter 3: Mobile Access', link: '/en/adopt/chapter3' },

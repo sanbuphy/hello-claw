@@ -1,201 +1,632 @@
-# 附录 D：学习资源汇总
+---
+prev:
+  text: '附录 C：类 Claw 方案对比与选型'
+  link: '/cn/appendix/appendix-c'
+next:
+  text: '附录 E：模型提供商选型指南'
+  link: '/cn/appendix/appendix-e'
+---
 
-学习 OpenClaw 最大的挑战不是技术本身，而是信息过载。
+# 附录 D：技能开发与发布指南
 
-当你在 Google 搜索"OpenClaw 教程"时，会看到上百篇文章、几十个视频、无数个 GitHub 仓库。有人说"10分钟上手"，有人说"需要一个月"；有人推荐本地部署，有人建议云端运行；有人强调安全风险，有人展示炫酷案例。
+OpenClaw 的技能（Skill）系统是其核心扩展机制——通过编写一个 `SKILL.md` 文件，你就能让 AI Agent 学会新能力。本附录从零讲解技能的结构、开发流程和发布方式。
 
-**这份资源汇总的目的很简单**：帮你在信息海洋中找到最有价值的那些资源，按照合理的顺序学习，避免走弯路。
-
-我们整理了从官方文档到社区教程、从入门视频到高级案例的完整学习路径。无论你是想快速上手的新手，还是想深入研究的开发者，都能在这里找到适合自己的资源。
-
-## 一、官方资源
-
-**为什么从官方资源开始？** 因为这是最权威、最准确、最及时的信息来源。OpenClaw 更新很快，社区教程可能滞后，但官方文档永远是第一手资料。
-
-### 1.1 官方文档
-
-- **OpenClaw 官方网站**: <https://openclaw.ai>
-- **OpenClaw AI/ML API 文档**: <https://aimlapi.com>
-
-### 1.2 官方仓库
-
-- **OpenClaw 主仓库**: <https://github.com/openclaw/openclaw>
-
-### 1.3 社区资源
-
-**中文资源：**
-
-- **OpenClaw 中文文档**: <https://github.com/yeuxuan/openclaw-docs> - 276篇深度教程，源码剖析
-- **OpenClaw 中国插件**: <https://github.com/BytePioneer-AI/openclaw-china> - 飞书/钉钉/企业微信等国内平台插件
-- **OpenClaw 中文社区版**: <https://github.com/jiulingyun/openclaw-cn> - 深度汉化版本，CLI/Web 全中文
-- **OpenClaw 飞书部署指南**: <https://blog.csdn.net/m0_55049655/article/details/158623550> - CSDN企业级部署完整教程
-- **Clawdbot 中文技能库**: <https://github.com/ClawdbotCN/awesome-openclaw-skills-zh> - 汇集数百款实用技能的AI工具集市
-- **Awesome OpenClaw 教程**: <https://github.com/xianyu110/awesome-openclaw-tutorial> - 35万字完整中文教程，70+实战案例
-- **OpenClaw 汉化发行版**: <https://github.com/1186258278/OpenClawChineseTranslation> - 每小时自动同步官方更新，CLI+Dashboard全中文
-- **Hello Claw 教程**: <https://github.com/datawhalechina/hello-claw> - Datawhale开源教程，从零领养到构建AI助手
-- **AI驱动中文文档**: <https://github.com/wszhxz/openclaw-chinese-docs> - AI自动化翻译维护的完整中文文档
-- **中文用例大全**: <https://github.com/AlexAnys/awesome-openclaw-usecases-zh> - 40个真实场景，国内生态适配
-
-**英文资源：**
-
-- **用例集合**: <https://github.com/hesamsheikh/awesome-openclaw-usecases> - 社区应用案例，36个真实场景验证
-- **技能列表**: <https://github.com/VoltAgent/awesome-openclaw-skills> - 5490+ Skills 集合，过滤6940个垃圾插件
-- **综合资源**: <https://github.com/SamurAIGPT/awesome-openclaw> - 最全面的资源汇总，100+项目链接
-- **官方 Skills 仓库**: <https://github.com/openclaw/skills> - OpenClaw 官方维护的技能库
-- **MoltWorker**: <https://github.com/cloudflare/moltworker> - Cloudflare 开源的 OpenClaw 部署方案
-- **Awesome OpenClaw Agents**: <https://github.com/mergisi/awesome-openclaw-agents> - 100个生产就绪AI Agent模板
-
-**项目展示：**
-
-- **OpenClaw Community**: <https://github.com/openclaw/community> - Discord 社区文档
-
-**技能市场：**
-
-- **ClawHub Skills Registry**: <https://clawhub.ai> - 官方 Skills 注册中心，16,000+ 可用技能
-- **ClawHub AI**: <https://clawhub.ai> - Skills 搜索与发现平台
-
-**社区讨论：**
-
-- **Reddit r/LocalLLaMA**: <https://reddit.com/r/LocalLLaMA> - OpenClaw 热门讨论板块
-- **Discord 官方服务器**: <https://discord.gg/openclaw> - 实时技术交流与问题解答
-
-## 二、部署与托管资源
-
-### 2.1 部署方案
-
-- **Docker 部署指南**: <https://blog.csdn.net/LYX_WIN/article/details/157993447> - GPU/CPU双路径容器化部署
-- **Mac Docker 部署**: <https://www.toutiao.com/group/7613726227169395206> - 5分钟在Docker中跑起OpenClaw
-- **Windows 安装教程**: <https://www.toutiao.com/group/7614711135060754971> - 保姆级PowerShell安装指南
-- **OpenClaw Launch**: <https://openclaw.ai/launch> - 30秒一键云端部署，支持模型切换
-- **HuggingClaw**: <https://github.com/democra-ai/HuggingClaw> - HuggingFace Spaces免费部署方案，2vCPU+16GB RAM
-- **OpenClaw KasmVNC**: <https://github.com/ddong8/openclaw-kasmvnc> - 浏览器远程桌面一键部署，带完整容器管理
-- **1Panel 一键部署**: <https://github.com/1Panel-dev/1Panel> - 国产VPS面板，支持OpenClaw一键安装
-
-### 2.2 安全最佳实践
-
-- **沙盒模式配置**: <https://www.toutiao.com/group/7607625142893625883> - Docker容器隔离与文件系统保护
-- **安全加固指南**: <https://github.com/rohitg00/awesome-openclaw> - 权限管理与风险防控
-- **MCP Server 集成**: <https://blog.csdn.net/LYX_WIN/article/details/157993447> - Playwright MCP浏览器自动化
-
-### 2.3 本地大模型集成
-
-- **llama.cpp 部署**: <https://blog.csdn.net/Honmaple/article/details/157693340> - WSL2环境本地大模型部署教程
-- **Ollama 集成**: <https://www.toutiao.com/group/7602483142699516435> - 国产算力适配与工具链生态
-- **MiniMax + 飞书**: <https://www.toutiao.com/group/7612259016139391503> - 国产模型本地Agent部署方案
-
-## 三、消息平台集成
-
-- **飞书集成**: <https://www.toutiao.com/group/7614370801759912486> - 飞书官方插件完整指南
-- **微信/Telegram/Discord**: <https://www.toutiao.com/group/7610316711539950132> - 多平台消息通道配置
-- **Slack/Signal/iMessage**: <https://www.toutiao.com/group/7614458834022613544> - 企业IM集成方案
-
-## 四、进阶学习资源
-
-### 4.1 架构与原理
-
-- **OpenClaw 架构解析**: <https://www.toutiao.com/group/7602243573023425060> - 智能体执行、工具调用、浏览器操作底层逻辑
-- **意图与对话管理**: <https://www.toutiao.com/group/7610070344208073259> - NLP识别与槽位填充实战
-- **分布式AI代理**: <https://www.toutiao.com/group/7614498988393333294> - 跨设备联动与多Agent协作
-- **完整架构全解**: <https://www.toutiao.com/group/7610063314768446006> - AI私人助理工作流程详解
-
-### 4.2 技能开发教程
-
-- **Skills 配置手把手教程**: <https://www.toutiao.com/group/7612296579612983846> - 专业化工作流与工具集成
-- **前端开发者技能库搭建**: <https://www.toutiao.com/group/7614486886799426088> - 从入门到进阶实战
-- **2026必装Skills推荐**: <https://www.toutiao.com/group/7611601860910236179> - 4个核心技能安装与配置
-- **插件安装指南**: <https://www.php.cn/faq/2161325.html> - CLI扩展功能添加步骤说明
-
-### 4.3 生态工具盘点
-
-- **OpenClaw生态TOP6工具**: <https://www.toutiao.com/group/7613671784054866473> - 部署、托管、监控一站式方案
-- **从新手到中级教程**: <https://www.toutiao.com/group/7613221725324444202> - 沙盒模式与工作空间探索
-- **Clawdbot→Moltbot→OpenClaw**: <https://www.toutiao.com/group/7601730056133804571> - 历史版本部署实战汇总
-
-### 4.4 浏览器自动化
-
-- **浏览器自动化技能**: <https://www.toutiao.com/group/7613585763871080969> - browser-automation技能使用指南
-- **OpenClaw+Playwright**: <https://www.toutiao.com/group/7614706712441487915> - 自然语言驱动自动化
-- **Agent-Browser**: <https://github.com/vercel-labs/agent-browser> - Vercel开源AI代理浏览器工具
-- **WSLg+指纹绕过**: <https://www.toutiao.com/group/7605101648096018978> - 动态伪装浏览器指纹反爬
-
-### 4.5 记忆系统与知识库
-
-- **记忆系统深度拆解**: <https://www.toutiao.com/group/7603715229905666569> - 长期/精炼记忆工作原理
-- **记忆系统架构解析**: <https://www.toutiao.com/group/7606549081040667188> - Markdown到混合检索实现
-- **Mem0集成方案**: <https://www.toutiao.com/group/7613455137884946959> - 省token的智能记忆管理
-- **知识库构建**: <https://www.toutiao.com/group/7612927848772272667> - SOP与知识库最佳实践
-- **Memory LanceDB Pro**: <https://github.com/win4r/memory-lancedb-pro> - 增强型长期记忆插件，支持混合检索和跨编码器重排序
-- **Agent Second Brain**: <https://github.com/AgentSecondBrain/memU> - 完整的第二大脑系统，语音笔记→Obsidian+Todoist
-- **Obsidian Vault RAG**: <https://github.com/Obsidian68/vault-rag> - OpenClaw连接Obsidian知识库，实时Markdown索引
-
-### 4.6 自动化工作流
-
-- **自动化工作流实操**: <https://www.toutiao.com/group/7614476588058427946> - 从配置到3个核心场景实战
-- **自动化办公指南**: <https://www.toutiao.com/group/7614155545884328499> - 文件处理与团队协作场景
-- **阿里云+本地部署**: <https://developer.aliyun.com/article/1713898> - 云服务器部署与Skill实操
-- **awesome-usecases详解**: <https://blog.csdn.net/yangshangwei/article/details/158314655> - 30+真实可运行场景
-
-### 4.7 Agent 模板与快速启动
-
-- **Awesome OpenClaw Agents**: <https://github.com/mergisi/awesome-openclaw-agents> - 100个生产就绪AI Agent模板，18个分类
-- **CrewClaw**: <https://crewclaw.com> - 60秒部署任意Agent，无需Docker和终端
-- **Agent Templates**: <https://github.com/mergisi/awesome-openclaw-agents/tree/main/agents> - 即拿即用的SOUL.md配置文件
-- **Quickstart Guide**: <https://github.com/mergisi/awesome-openclaw-agents/tree/main/quickstart> - 5分钟零配置启动Agent
-
-### 4.8 生态工具与可视化
-
-- **ClawPanel**: <https://github.com/1186258278/ClawPanel> - OpenClaw可视化管理面板，内置AI助手
-- **ClawApp**: <https://github.com/qingchencloud/ClawApp> - 手机端H5聊天客户端，PWA支持
-- **Nerve**: <https://github.com/Nerve/nerve> - 自托管Web驾驶舱，实时流式对话
-- **Manifest**: <https://github.com/manifest/manifest> - 实时成本可观测性，28+模型支持
-- **Opik OpenClaw**: <https://github.com/Anil-matcha/opik-openclaw> - 链路级可观测性追踪
-- **MobileClaw**: <https://github.com/mobileclaw/mobileclaw> - 移动优先PWA客户端
-- **PinchChat**: <https://github.com/pinchchat/pinchchat> - 开源WebChat UI，ChatGPT风格界面
+> **推荐工具**：Anthropic 官方出品的 [skill-creator](https://github.com/anthropics/skills/tree/main/skills/skill-creator) 是目前最成熟的技能开发辅助工具，本附录以它为主线。
 
 ---
 
-## 写在最后
+## 一、技能是什么？
 
-学习 OpenClaw 最大的障碍不是技术难度，而是信息过载和缺乏方向。
+### Skills vs Tools
 
-这份资源汇总的目标，是帮你在茫茫信息海洋中找到最有价值的那些资源，按照合理的顺序学习，避免走弯路。但请记住：**看再多教程，不如动手做一个真实的项目**。
+先分清两个概念：
 
-从最简单的开始：让 OpenClaw 每天早上给你发送天气预报。成功后，再尝试更复杂的场景。每一个小成功，都会让你更接近"AI 助手"的终极目标。
+| | Tools（工具） | Skills（技能） |
+|---|---|---|
+| **比喻** | 手脚和权限开关 | 小程序 / 插件 |
+| **作用** | 决定 Agent 能不能做某类动作 | 给 Agent 增加特定能力 |
+| **例子** | 文件读写、Shell 执行、网络请求 | 网络搜索、天气查询、代码审查 |
 
-**推荐学习路径**：
+简单说：Tools 是"能力通道"，Skills 是"装进通道里的具体能力"。
 
-1. **完全新手**：从 [Hello Claw 教程](https://github.com/datawhalechina/hello-claw) 或 [Awesome OpenClaw 教程](https://github.com/xianyu110/awesome-openclaw-tutorial) 开始
-2. **想快速部署**：使用 [OpenClaw 汉化发行版](https://github.com/1186258278/OpenClawChineseTranslation) 或 [HuggingClaw](https://github.com/democra-ai/HuggingClaw)
-3. **需要Agent模板**：直接套用 [Awesome OpenClaw Agents](https://github.com/mergisi/awesome-openclaw-agents) 的100个模板
-4. **进阶开发者**：研究 [Awesome OpenClaw Skills](https://github.com/VoltAgent/awesome-openclaw-skills) 和 [Memory LanceDB Pro](https://github.com/win4r/memory-lancedb-pro)
+### 技能三级加载
 
-**最后的建议**：
-- 不要追求完美，先让它跑起来
-- 不要孤军奋战，遇到问题就问社区
-- 不要只学不用，每学一个功能就用到实际工作中
-- 不要害怕出错，OpenClaw 最坏的结果就是重装
+OpenClaw 按优先级从高到低加载技能：
 
-**快速启动命令**：
-```bash
-# 安装 OpenClaw
-npm install -g openclaw@latest
+| 优先级 | 类型 | 位置 | 说明 |
+|:---:|------|------|------|
+| 1 | 工作空间技能 | `~/.openclaw/workspace/skills/` | 当前工作空间专属，优先级最高 |
+| 2 | 托管技能 | `~/.openclaw/skills/` | 通过 ClawHub 安装的共享技能 |
+| 3 | 内置技能 | 随 OpenClaw 安装 | 官方捆绑，优先级最低 |
 
-# 初始化配置
-openclaw onboard --install-daemon
+同名技能按优先级覆盖，采用懒加载策略（用到时才读取 SKILL.md 正文）。
 
-# 启动网关
-openclaw gateway start
+---
 
-# 打开控制台
-openclaw dashboard
+## 二、技能的结构
+
+每个技能是一个文件夹，核心是 `SKILL.md`：
+
+```
+my-skill/
+├── SKILL.md           # 必需：技能定义文件（YAML frontmatter + Markdown 指令）
+├── scripts/           # 可选：可执行脚本（搜索、API 调用等）
+├── references/        # 可选：参考文档（按需加载，不占常驻上下文）
+└── assets/            # 可选：模板、图标等静态资源
 ```
 
-祝你学习愉快！
+### SKILL.md 格式
+
+`SKILL.md` 由两部分组成：**YAML frontmatter**（元数据）+ **Markdown 正文**（指令）。
+
+````markdown
+---
+name: my-skill
+description: 技能描述（最重要的字段——AI 根据它决定何时调用此技能）
+user-invocable: true
+disable-model-invocation: false
+metadata:
+  openclaw:
+    requires:
+      env:
+        - MY_API_KEY
+      bins:
+        - node
+---
+
+# 技能指令
+
+这里用 Markdown 写清楚 AI 应该怎么使用这个技能。
+
+可以用 `{baseDir}` 引用技能所在目录，OpenClaw 运行时会自动替换为实际路径。
+````
+
+### Frontmatter 字段说明
+
+| 字段 | 必填 | 说明 |
+|------|:---:|------|
+| `name` | 是 | 技能标识符，小写字母 + 连字符（如 `my-awesome-skill`） |
+| `description` | 是 | **决定 AI 何时调用此技能**——写清楚"做什么"和"什么时候用" |
+| `user-invocable` | 否 | 是否可通过斜杠命令手动调用（默认 `true`） |
+| `disable-model-invocation` | 否 | 设为 `true` 则 AI 不会自动触发，只能手动调用（默认 `false`） |
+| `homepage` | 否 | 技能或服务的官网链接 |
+| `metadata.openclaw.requires.env` | 否 | 需要的环境变量（未设置时技能标记为"不可用"） |
+| `metadata.openclaw.requires.bins` | 否 | 需要的系统命令（如 `node`、`python`、`curl`） |
+| `metadata.openclaw.requires.config` | 否 | 需要的配置路径 |
+
+### 三级加载机制
+
+技能内容按需逐级加载，节省上下文窗口：
+
+| 级别 | 内容 | 何时加载 | 建议大小 |
+|:---:|------|---------|---------|
+| 1 | `name` + `description` | 始终在上下文中 | ~100 词 |
+| 2 | SKILL.md 正文 | 技能被触发时 | <500 行 |
+| 3 | `references/` 中的文件 | 正文中指示读取时 | 不限 |
+
+> **写作建议**：SKILL.md 正文控制在 500 行以内。如果内容较多，将详细文档放到 `references/` 目录，在正文中用"如需了解 X，请读取 `{baseDir}/references/x.md`"指引。
 
 ---
 
-**提示**: 本资源汇总持续更新，建议收藏并定期查看最新内容。如果你发现了优质资源，欢迎提交 PR 补充。
+## 三、开发技能（推荐方式：skill-creator）
 
-**更新时间**: 2026年3月8日  
-**资源总数**: 80+ 链接  
-**覆盖范围**: 官方文档、中文教程、部署方案、生态工具、Agent模板、社区资源
+[skill-creator](https://github.com/anthropics/skills/tree/main/skills/skill-creator) 是 Anthropic 官方出品的技能开发辅助工具，它能引导你完成从构思到测试的完整流程。
+
+> 本教程已将 skill-creator 的完整源码收录在 `docs/cn/appendix/skill-creator/` 目录，供离线参考。
+
+### 安装 skill-creator
+
+skill-creator 本身就是一个 OpenClaw 技能，安装方式与其他技能一致：
+
+```bash
+# 方式一：通过 ClawHub 安装（推荐）
+clawhub install skill-creator
+
+# 方式二：手动安装到工作空间
+# 将 skill-creator 文件夹复制到：
+# ~/.openclaw/workspace/skills/skill-creator/
+```
+
+安装后，skill-creator 会自动出现在 OpenClaw 的可用技能列表中：
+
+```bash
+openclaw skills list | grep skill-creator
+```
+
+### 使用流程
+
+skill-creator 采用**对话式开发**——你只需要在聊天中描述想要的技能，它会引导你完成全部步骤：
+
+**第一步：描述意图**
+
+在 OpenClaw 聊天界面中，直接告诉 Agent 你想做什么：
+
+```
+帮我创建一个天气查询技能
+```
+
+或者更具体地：
+
+```
+我想做一个技能，用户问天气时自动调用和风天气 API 返回实时天气
+```
+
+skill-creator 会通过几个问题帮你明确需求：
+- 这个技能让 Agent 做什么？
+- 什么时候应该触发？（用户说什么话时）
+- 输出是什么格式？
+- 需要测试用例吗？
+
+**第二步：自动生成 SKILL.md**
+
+skill-creator 根据你的回答自动生成完整的 SKILL.md，包括：
+- frontmatter 元数据（name、description、依赖声明）
+- Markdown 指令正文
+- 需要的脚本文件（如 API 调用脚本）
+
+**第三步：测试与迭代**
+
+skill-creator 会生成 2-3 个测试用例，模拟真实用户的对话场景，然后：
+
+1. 用你的技能运行这些测试
+2. 展示测试结果供你审阅
+3. 根据你的反馈改进技能
+4. 重复，直到你满意为止
+
+<details>
+<summary>skill-creator 的完整目录结构</summary>
+
+```
+skill-creator/
+├── SKILL.md              # 技能定义（核心指令，约 480 行）
+├── LICENSE.txt            # Apache 2.0 许可证
+├── agents/               # 专用子代理指令
+│   ├── grader.md          # 评分代理：评估断言是否通过
+│   ├── comparator.md      # 比较代理：盲测 A/B 对比
+│   └── analyzer.md        # 分析代理：解读基准测试结果
+├── scripts/              # 自动化脚本
+│   ├── run_loop.py        # 描述优化主循环
+│   ├── run_eval.py        # 触发率评估
+│   ├── improve_description.py  # 描述改进
+│   ├── aggregate_benchmark.py  # 基准汇总
+│   ├── generate_report.py      # 报告生成
+│   ├── package_skill.py        # 技能打包
+│   └── quick_validate.py       # 快速校验
+├── references/
+│   └── schemas.md         # JSON 数据结构规范
+├── assets/
+│   └── eval_review.html   # 评测结果审阅界面模板
+└── eval-viewer/
+    └── generate_review.py # 可视化评测结果查看器
+```
+
+</details>
+
+<details>
+<summary>skill-creator 进阶功能</summary>
+
+**描述优化（Description Optimization）**
+
+`description` 字段是 AI 决定是否调用技能的唯一依据。skill-creator 内置了自动优化流程：
+
+1. 生成 20 个测试查询（10 个应触发 + 10 个不应触发）
+2. 在你审阅并确认后，运行优化循环
+3. 自动将评测集拆分为 60% 训练 / 40% 测试
+4. 每轮迭代最多运行 3 次以获取可靠触发率
+5. 最终选择测试集得分最高（而非训练集）的描述，避免过拟合
+
+**盲测对比（Blind Comparison）**
+
+想严格比较两个版本的技能？skill-creator 支持将两个版本的输出交给独立代理盲评——它不知道哪个是新版、哪个是旧版，只根据质量打分。
+
+**基准测试（Benchmarking）**
+
+每轮迭代自动生成 `benchmark.json`，包含：
+- 各断言的通过率
+- 用时和 Token 消耗对比
+- 均值 ± 标准差 + 变化量
+
+</details>
+
+### 手动开发（不使用 skill-creator）
+
+如果你更喜欢手动操作，步骤如下：
+
+1. **创建目录**
+   ```bash
+   mkdir -p ~/.openclaw/workspace/skills/my-skill
+   ```
+
+2. **编写 SKILL.md**（参照本附录第二节的格式）
+
+3. **验证**
+   ```bash
+   openclaw skills check
+   openclaw skills info my-skill
+   ```
+
+4. **测试**：在聊天中发送触发关键词，观察技能是否正常工作。
+
+---
+
+## 四、实战案例：tavily-search 技能
+
+以 ClawHub 上的 [tavily-search](https://clawhub.ai/arun-8687/tavily-search)（v1.0.0）为例，看一个真实技能的完整结构。这是一个通过 [Tavily API](https://tavily.com) 为 AI Agent 提供网络搜索能力的技能。
+
+### 目录结构
+
+```
+tavily-search-1.0.0/
+├── SKILL.md           # 技能定义（frontmatter + 使用说明）
+├── _meta.json         # ClawHub 发布元数据
+└── scripts/
+    ├── search.mjs     # 网络搜索实现
+    └── extract.mjs    # 网页内容提取实现
+```
+
+### SKILL.md 内容
+
+```markdown
+---
+name: tavily
+description: AI-optimized web search via Tavily API. Returns concise, relevant results for AI agents.
+homepage: https://tavily.com
+metadata: {"clawdbot":{"emoji":"...","requires":{"bins":["node"],"env":["TAVILY_API_KEY"]},"primaryEnv":"TAVILY_API_KEY"}}
+---
+
+# Tavily Search
+
+AI-optimized web search using Tavily API. Designed for AI agents - returns clean, relevant content.
+
+## Search
+
+​```bash
+node {baseDir}/scripts/search.mjs "query"
+node {baseDir}/scripts/search.mjs "query" -n 10
+node {baseDir}/scripts/search.mjs "query" --deep
+node {baseDir}/scripts/search.mjs "query" --topic news
+​```
+
+## Options
+
+- `-n <count>`: Number of results (default: 5, max: 20)
+- `--deep`: Use advanced search for deeper research (slower, more comprehensive)
+- `--topic <topic>`: Search topic - `general` (default) or `news`
+- `--days <n>`: For news topic, limit to last n days
+
+## Extract content from URL
+
+​```bash
+node {baseDir}/scripts/extract.mjs "https://example.com/article"
+​```
+
+Notes:
+- Needs `TAVILY_API_KEY` from https://tavily.com
+- Use `--deep` for complex research questions
+- Use `--topic news` for current events
+```
+
+### 设计要点解读
+
+**Frontmatter 设计**
+
+| 字段 | 值 | 作用 |
+|------|---|------|
+| `name` | `tavily` | 安装后的技能标识符 |
+| `description` | `AI-optimized web search...` | AI 根据这段描述判断何时调用——写清楚"做什么"是关键 |
+| `homepage` | `https://tavily.com` | 方便用户注册获取 API Key |
+| `metadata.requires.bins` | `["node"]` | 声明需要 Node.js，加载时自动检查 |
+| `metadata.requires.env` | `["TAVILY_API_KEY"]` | 未设置时技能标记为"不可用"而非崩溃 |
+| `metadata.primaryEnv` | `TAVILY_API_KEY` | 告诉配置向导该提示用户填哪个 Key |
+
+**脚本设计模式**
+
+`search.mjs` 核心逻辑（约 100 行）：
+
+```javascript
+// 1. 读取环境变量中的 API Key
+const apiKey = (process.env.TAVILY_API_KEY ?? "").trim();
+if (!apiKey) { console.error("Missing TAVILY_API_KEY"); process.exit(1); }
+
+// 2. 调用 Tavily API
+const resp = await fetch("https://api.tavily.com/search", {
+  method: "POST",
+  headers: { "Content-Type": "application/json" },
+  body: JSON.stringify({ api_key: apiKey, query, search_depth: searchDepth, ... }),
+});
+
+// 3. 格式化输出为 Markdown（AI 友好格式）
+if (data.answer) console.log("## Answer\n" + data.answer);
+for (const r of results) {
+  console.log(`- **${r.title}** (relevance: ${(r.score * 100).toFixed(0)}%)`);
+  console.log(`  ${r.url}`);
+}
+```
+
+四条关键原则：
+
+| 原则 | 做法 | 原因 |
+|------|------|------|
+| 输出 Markdown | `console.log("## Answer\n" + ...)` | AI Agent 能直接解析结构化结果 |
+| 参数校验前置 | 缺 Key 时 `process.exit(1)` | 让 OpenClaw 捕获并提示用户，而非抛异常 |
+| 结果截断 | `content.slice(0, 300)` | 避免输出过长占满上下文窗口 |
+| `{baseDir}` 变量 | SKILL.md 中引用脚本路径 | 运行时自动替换为实际路径，无需硬编码 |
+
+**配置方式**
+
+安装后在 `openclaw.json` 中配置：
+
+```json
+{
+  "skills": {
+    "entries": {
+      "tavily": {
+        "enabled": true
+      }
+    }
+  },
+  "env": {
+    "TAVILY_API_KEY": "tvly-你的密钥"
+  }
+}
+```
+
+或直接设置环境变量：`export TAVILY_API_KEY=tvly-你的密钥`
+
+---
+
+## 五、发布到 ClawHub
+
+技能开发完成后，你可以将它发布到 [ClawHub](https://clawhub.ai) 社区，让全世界的 OpenClaw 用户都能安装使用。
+
+### 发布前准备
+
+确保你的技能文件夹结构完整：
+
+```
+my-skill/
+├── SKILL.md           # 必需：包含完整的 frontmatter 和指令
+├── scripts/           # 可选：脚本文件
+└── ...                # 其他辅助文件（纯文本）
+```
+
+> **注意**：ClawHub 只接受包含 `SKILL.md` 和纯文本文件的文件夹。二进制文件、图片等不支持上传。
+
+### 发布步骤
+
+**1. 登录 ClawHub**
+
+访问 [clawhub.ai](https://clawhub.ai)，使用 GitHub 账号登录。
+
+**2. 进入发布页面**
+
+点击页面顶部的 **"Publish"** 按钮，进入技能发布界面：
+
+![ClawHub 技能发布界面](./images/clawhub-publish-skill.png)
+
+**3. 填写发布信息**
+
+| 字段 | 说明 | 示例 |
+|------|------|------|
+| **Slug** | 技能的 URL 标识符（小写字母 + 连字符） | `hello-claw` |
+| **Display name** | 技能显示名称 | `Hello Claw` |
+| **Version** | 版本号，遵循 [语义化版本](https://semver.org/lang/zh-CN/)（SemVer） | `1.0.0` |
+| **Tags** | 版本标签，默认 `latest` | `latest` |
+
+**4. 上传技能文件夹**
+
+将包含 `SKILL.md` 的文件夹拖拽到 **"Drop a folder"** 区域，或点击 **"Choose folder"** 手动选择。
+
+上传后，页面右侧会显示检测到的 `SKILL.md` 文件。系统会自动去除外层包裹目录——你只需确保文件夹内有 `SKILL.md` 即可。
+
+**5. 自动校验（Validation）**
+
+ClawHub 会自动检查技能是否符合社区规则：
+
+- `SKILL.md` 是否存在且格式正确
+- frontmatter 是否包含必需的 `name` 和 `description`
+- 文件是否为纯文本
+
+校验通过后会显示 **"All checks passed"**。
+
+**6. 确认许可证（License）**
+
+默认许可证为 **MIT-0**（MIT No Attribution）：
+
+> 允许任何人免费使用、修改和重新分发，无需署名。
+
+勾选 **"I have the rights to this skill and agree to publish it under MIT-0"** 确认。
+
+> **提示**：MIT-0 是目前最宽松的开源许可证之一，适合社区共享。如果你的技能包含专有内容，请在发布前确认许可证兼容性。
+
+**7. 填写 Changelog（可选）**
+
+简要描述这个版本的内容，例如：
+
+```
+Initial release of "Hello Claw Skill" - comprehensive skill mastery framework for OpenClaw ecosystem.
+```
+
+**8. 发布**
+
+确认无误后，点击右下角的 **"Publish skill"** 按钮。发布成功后，其他用户即可通过以下命令安装：
+
+```bash
+clawhub install 你的用户名/my-skill
+```
+
+### 更新已发布的技能
+
+修改技能后，只需递增版本号并重新上传：
+
+1. 更新 SKILL.md 中的内容
+2. 在发布页面填写新版本号（如 `1.0.0` → `1.1.0`）
+3. 上传更新后的文件夹
+4. 填写 Changelog 说明变更内容
+5. 点击 Publish
+
+用户可通过 `clawhub update` 获取最新版本。
+
+---
+
+## 六、技能管理
+
+### CLI 命令
+
+```bash
+# 查看所有可用技能
+openclaw skills list
+
+# 仅显示就绪的技能
+openclaw skills list --eligible
+
+# 显示详细信息（包括缺失的依赖）
+openclaw skills list -v
+
+# 查看某个技能的详情
+openclaw skills info <skill-name>
+
+# 检查所有技能状态
+openclaw skills check
+```
+
+### 通过 ClawHub 安装技能
+
+```bash
+# 搜索技能
+clawhub search <关键词>
+
+# 安装技能
+clawhub install <技能名>
+
+# 查看已安装的技能
+clawhub list
+
+# 更新技能
+clawhub update <技能名>
+clawhub update --all
+
+# 卸载技能
+clawhub uninstall <技能名>
+```
+
+> ClawHub CLI 的完整用法详见附录 A。
+
+### 在配置中启用技能
+
+编辑 `~/.openclaw/openclaw.json`：
+
+```json
+{
+  "skills": {
+    "entries": {
+      "skill-name": {
+        "enabled": true
+      }
+    }
+  }
+}
+```
+
+### 配置凭证（SecretRef）
+
+需要 API Key 的技能，推荐使用 SecretRef 安全存储：
+
+```json
+{
+  "skills": {
+    "entries": {
+      "tavily": {
+        "enabled": true,
+        "apiKey": {
+          "source": "env",
+          "provider": "default",
+          "id": "TAVILY_API_KEY"
+        }
+      }
+    }
+  }
+}
+```
+
+支持的 `source` 类型：
+
+| source | 说明 | 适用场景 |
+|--------|------|---------|
+| `env` | 从环境变量读取 | 最常用，适合本地开发 |
+| `file` | 从文件读取 | 适合多人共享服务器 |
+| `exec` | 从命令执行结果读取 | 适合集成密钥管理系统 |
+
+---
+
+## 七、插件开发
+
+对于比技能更复杂的扩展需求（如自定义 Transport、新增 Tool 类型），可以开发插件：
+
+```bash
+# 列出已安装插件
+openclaw plugins list
+
+# 安装插件
+openclaw plugins install <path|.tgz|npm-spec>
+
+# 启用/禁用插件
+openclaw plugins enable <id>
+openclaw plugins disable <id>
+
+# 插件诊断
+openclaw plugins doctor
+```
+
+---
+
+## 八、故障排查
+
+### 技能无法加载
+
+```bash
+# 检查技能状态（会显示缺失的依赖）
+openclaw skills check
+
+# 查看详细信息
+openclaw skills info <skill-name> -v
+
+# 查看网关日志
+openclaw logs --follow
+```
+
+常见原因：
+- 缺少环境变量（`metadata.requires.env` 中声明的变量未设置）
+- 缺少系统命令（`metadata.requires.bins` 中声明的命令未安装）
+- SKILL.md 格式错误（frontmatter 缺少 `name` 或 `description`）
+
+### 技能不触发
+
+- 检查 `description` 是否准确描述了触发场景
+- 确认 `disable-model-invocation` 未设为 `true`
+- 尝试在描述中增加触发关键词（skill-creator 的描述优化功能可以帮助解决这个问题）
+
+### 技能权限问题
+
+确保技能目录有正确的读取权限：
+
+```bash
+# macOS / Linux
+chmod -R 755 ~/.openclaw/workspace/skills/my-skill/
+```
+
+---
+
+## 九、开发清单
+
+开发技能前，用这份清单逐项确认：
+
+- [ ] SKILL.md frontmatter 包含 `name` 和 `description`
+- [ ] `description` 清晰描述触发条件和能力（AI 靠这个决定何时调用）
+- [ ] 环境变量需求在 `metadata.requires.env` 中声明
+- [ ] 系统命令依赖在 `metadata.requires.bins` 中声明
+- [ ] 脚本输出 Markdown 格式（对 AI 友好）
+- [ ] 敏感信息使用环境变量或 SecretRef，不硬编码
+- [ ] 错误处理完善（缺少 Key 时 `exit(1)`，API 失败时输出清晰错误）
+- [ ] 本地测试通过（`openclaw skills check` + 实际对话测试）
+- [ ] 准备发布时：文件夹只含 SKILL.md 和纯文本文件

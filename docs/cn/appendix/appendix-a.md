@@ -1,718 +1,376 @@
-# 附录 A：命令速查表
+---
+prev:
+  text: '第11章 Web 界面与客户端'
+  link: '/cn/adopt/chapter11'
+next:
+  text: '附录 B：社区之声与生态展望'
+  link: '/cn/appendix/appendix-b'
+---
 
-OpenClaw 提供了丰富的命令行工具，本附录基于官方文档整理所有常用命令。
+# 附录 A：学习资源汇总
 
-> 参考来源：[OpenClaw CLI Reference](https://docs.openclaw.ai/cli)
+学习 OpenClaw 最大的挑战不是技术本身，而是信息过载。搜索"OpenClaw 教程"会看到上百篇文章、几十个视频、无数个 GitHub 仓库——有人说"10 分钟上手"，有人说"需要一个月"；有人推荐本地部署，有人建议云端运行。
 
-## 快速导航
+**这份资源汇总的目的很简单**：帮你在信息海洋中找到最有价值的资源，按照合理的顺序学习，避免走弯路。
 
-- [安装与更新](#安装与更新)
-- [初始化与配置](#初始化与配置)
-- [网关管理](#网关管理)
-- [Agent 管理](#agent-管理)
-- [技能管理](#技能管理)
-- [记忆管理](#记忆管理)
-- [设备管理](#设备管理)
-- [诊断与调试](#诊断与调试)
-- [配置操作](#配置操作)
-- [消息发送](#消息发送)
-- [模型管理](#模型管理)
-- [系统管理](#系统管理)
+> **阅读提示**：资源按用途分为 8 大类。每个类别内按**推荐优先级**排列——排在前面的更适合大多数读者。带 ⭐ 标记的为编者精选。
 
 ---
 
-## 全局选项
+## 一、官方资源
 
-```bash
-openclaw [--dev] [--profile <name>] <command>
+> 官方资源是最权威、最准确、最及时的信息来源。OpenClaw 更新很快，社区教程可能滞后，但官方文档永远是第一手资料。
 
---dev              # 隔离状态到 ~/.openclaw-dev，并偏移默认端口
---profile <name>   # 隔离状态到 ~/.openclaw-<name>
---no-color         # 禁用 ANSI 颜色
---update           # 简写为 openclaw update（仅源码安装）
--V, --version, -v  # 打印版本并退出
-```
+### 1.1 官方文档与仓库
 
----
+| 资源 | 地址 | 说明 |
+|------|------|------|
+| OpenClaw 官方网站 | <https://openclaw.ai> | 产品首页、功能概览、快速入门 |
+| OpenClaw 主仓库 | <https://github.com/openclaw/openclaw> | 源码、Issue 跟踪、Release 记录 |
+| OpenClaw AI/ML API | <https://aimlapi.com> | API 文档与接口规范 |
+| 官方 Skills 仓库 | <https://github.com/openclaw/skills> | OpenClaw 官方维护的技能库 |
 
-## 安装与更新
+### 1.2 技能市场
 
-### 安装 OpenClaw
+| 资源 | 地址 | 说明 |
+|------|------|------|
+| ⭐ ClawHub Skills Registry | <https://clawhub.ai> | 官方 Skills 注册中心，16,000+ 可用技能，支持搜索与发现 |
+| 腾讯 SkillHub | <https://skillhub.tencent.com> | ClawHub 国内镜像，中文搜索 + CDN 加速 + 精选 Top 50 安全审计技能 |
 
-```bash
-# 通过 npm 安装（推荐）
-npm install -g openclaw@latest
+### 1.3 官方社区
 
-# 或通过 pnpm
-pnpm add -g openclaw@latest
-```
-
-### 更新 OpenClaw
-
-```bash
-# 检查并更新到最新版本
-openclaw update
-
-# 切换到特定频道
-openclaw update --channel stable|beta|dev
-
-# 查看当前版本
-openclaw --version
-```
-
-### 卸载 OpenClaw
-
-```bash
-# 卸载网关服务和本地数据（CLI 保留）
-openclaw uninstall
-
-# 指定范围卸载
-openclaw uninstall --service --state --workspace --app --all
-
-# 重置配置和状态（保留 CLI）
-openclaw reset
-openclaw reset --scope config+creds+sessions --yes
-```
+| 资源 | 地址 | 说明 |
+|------|------|------|
+| Discord 官方服务器 | <https://discord.gg/openclaw> | 实时技术交流与问题解答 |
+| OpenClaw Community | <https://github.com/openclaw/community> | Discord 社区文档与规范 |
+| Reddit r/LocalLLaMA | <https://reddit.com/r/LocalLLaMA> | OpenClaw 热门讨论板块 |
 
 ---
 
-## 初始化与配置
+## 二、中文生态资源
 
-### 初始化向导
+> 中文社区为 OpenClaw 贡献了大量高质量资源，包括汉化版本、深度教程和国内平台适配插件。
 
-```bash
-# 交互式设置向导（推荐）
-openclaw onboard
+### 2.1 中文社区
 
-# 初始化并安装守护进程
-openclaw onboard --install-daemon
+| 资源 | 地址 | 说明 |
+|------|------|------|
+| ⭐ OpenClaw 中文社区 | <https://clawd.org.cn> | 国内用户交流、经验分享、问题互助的中文社区门户 |
 
-# 非交互式模式
-openclaw onboard --non-interactive --mode local
+### 2.2 中文教程与文档
 
-# 重置后重新初始化
-openclaw onboard --reset
-```
+| 资源 | 地址 | 说明 |
+|------|------|------|
+| ⭐ Hello Claw 教程 | <https://github.com/datawhalechina/hello-claw> | Datawhale 开源教程，从零领养到构建 AI 助手（本教程） |
+| ⭐ Awesome OpenClaw 教程 | <https://github.com/xianyu110/awesome-openclaw-tutorial> | 35 万字完整中文教程，70+ 实战案例 |
+| OpenClaw 中文文档 | <https://github.com/yeuxuan/openclaw-docs> | 276 篇深度教程与源码剖析 |
+| AI 驱动中文文档 | <https://github.com/wszhxz/openclaw-chinese-docs> | AI 自动化翻译维护的完整中文文档 |
+| 中文用例大全 | <https://github.com/AlexAnys/awesome-openclaw-usecases-zh> | 40 个真实场景，国内生态适配 |
 
-### 配置向导
+### 2.3 中文汉化与发行版
 
-```bash
-# 交互式配置向导
-openclaw configure
+| 资源 | 地址 | 说明 |
+|------|------|------|
+| ⭐ OpenClaw 汉化发行版 | <https://github.com/1186258278/OpenClawChineseTranslation> | 每小时自动同步官方更新，CLI + Dashboard 全中文 |
+| OpenClaw 中文社区版 | <https://github.com/jiulingyun/openclaw-cn> | 深度汉化版本，CLI/Web 全中文界面 |
 
-# 验证配置
-openclaw doctor
-openclaw doctor --fix          # 自动修复
-openclaw doctor --deep         # 深度扫描
-```
+### 2.4 国内平台适配
 
-### 打开控制台
-
-```bash
-# 启动 Web Dashboard
-openclaw dashboard
-```
+| 资源 | 地址 | 说明 |
+|------|------|------|
+| ⭐ OpenClaw 中国插件 | <https://github.com/BytePioneer-AI/openclaw-china> | 飞书 / 钉钉 / 企业微信等国内平台插件集合 |
+| Clawdbot 中文技能库 | <https://github.com/ClawdbotCN/awesome-openclaw-skills-zh> | 汇集数百款实用技能的 AI 工具集市 |
 
 ---
 
-## 网关管理
+## 三、安装与部署
 
-网关（Gateway）是 OpenClaw 的核心服务，默认运行在 `ws://127.0.0.1:18789`。
+> 根据你的环境和需求，选择最适合的安装方式。桌面客户端适合新手，Docker 适合服务器，云端方案适合零运维。
 
-### 启动网关
+### 3.1 桌面客户端（一键安装）
 
-```bash
-# 前台运行（调试模式）
-openclaw gateway --port 18789 --verbose
+| 客户端 | 地址 | 平台 | 特点 |
+|--------|------|------|------|
+| ⭐ AutoClaw（澳龙） | <https://autoglm.zhipuai.cn/autoclaw> | macOS / Windows | 预装 50+ 技能，内置 Pony-Alpha-2 模型，有免费额度 |
+| ClawX | <https://github.com/ValueCell-ai/ClawX> | macOS / Windows / Linux | 开源 Electron 客户端，多平台，需自备 API Key |
+| IronClaw | <https://github.com/nearai/ironclaw> | macOS / Linux / Windows | Rust 安全重写版，WASM 沙盒，PostgreSQL 后端 |
+| HiClaw | <https://github.com/higress-group/hiclaw> | Docker 环境 | 多智能体协作平台，Manager-Worker 架构 |
 
-# 指定绑定地址
-openclaw gateway --bind loopback|lan|tailnet|auto|custom
+> 详见[第一章 AutoClaw 一键安装](/cn/adopt/chapter1/)。
 
-# 使用 Token 认证
-openclaw gateway --auth token --token <token>
+### 3.2 Docker 容器化部署
 
-# 使用密码认证
-openclaw gateway --auth password --password <password>
+| 资源 | 地址 | 说明 |
+|------|------|------|
+| ⭐ Docker 部署指南 | <https://blog.csdn.net/LYX_WIN/article/details/157993447> | GPU / CPU 双路径容器化部署完整教程 |
+| Mac Docker 部署 | <https://www.toutiao.com/group/7613726227169395206> | 5 分钟在 Docker 中跑起 OpenClaw |
+| OpenClaw KasmVNC | <https://github.com/ddong8/openclaw-kasmvnc> | 浏览器远程桌面一键部署，带完整容器管理 |
 
-# Tailscale 集成
-openclaw gateway --tailscale serve|funnel
+### 3.3 云端与一键部署
 
-# 开发模式
-openclaw gateway --dev
-```
+| 资源 | 地址 | 说明 |
+|------|------|------|
+| OpenClaw Launch | <https://openclaw.ai/launch> | 30 秒一键云端部署，支持模型切换 |
+| HuggingClaw | <https://github.com/democra-ai/HuggingClaw> | HuggingFace Spaces 免费部署，2vCPU + 16GB RAM |
+| 1Panel 一键部署 | <https://github.com/1Panel-dev/1Panel> | 国产 VPS 面板，支持 OpenClaw 一键安装 |
+| MoltWorker | <https://github.com/cloudflare/moltworker> | Cloudflare 开源的 OpenClaw 部署方案 |
+| 阿里云部署 | <https://developer.aliyun.com/article/1713898> | 云服务器部署与 Skill 实操教程 |
 
-### 网关服务管理
+> 详见[附录 F：云服务部署指南](/cn/appendix/appendix-f)。
 
-```bash
-# 查看网关服务状态
-openclaw gateway status
+### 3.4 Windows / Linux 安装
 
-# 安装为系统服务
-openclaw gateway install
+| 资源 | 地址 | 说明 |
+|------|------|------|
+| Windows 安装教程 | <https://www.toutiao.com/group/7614711135060754971> | 保姆级 PowerShell 安装指南 |
+| 沙盒模式配置 | <https://www.toutiao.com/group/7607625142893625883> | Docker 容器隔离与文件系统保护 |
 
-# 卸载服务
-openclaw gateway uninstall
+> 详见[第二章 OpenClaw 手动安装](/cn/adopt/chapter2/)。
 
-# 启动/停止/重启服务
-openclaw gateway start
-openclaw gateway stop
-openclaw gateway restart
+### 3.5 本地大模型集成
 
-# 查看日志
-openclaw logs
-openclaw logs --limit 100
-```
+| 资源 | 地址 | 说明 |
+|------|------|------|
+| llama.cpp 部署 | <https://blog.csdn.net/Honmaple/article/details/157693340> | WSL2 环境本地大模型部署教程 |
+| Ollama 集成 | <https://www.toutiao.com/group/7602483142699516435> | 国产算力适配与工具链生态 |
+| MiniMax + 飞书 | <https://www.toutiao.com/group/7612259016139391503> | 国产模型本地 Agent 部署方案 |
 
-### 网关健康检查
-
-```bash
-# 获取网关健康状态
-openclaw health
-openclaw health --json
-openclaw health --verbose
-
-# 网关调用（RPC）
-openclaw gateway call <method> --params '<json>'
-```
+> 详见[第五章 模型管理](/cn/adopt/chapter5/)。
 
 ---
 
-## Agent 管理
+## 四、消息平台集成
 
-### 列出所有 Agent
+> OpenClaw 支持 15+ 消息平台。以下资源帮助你快速接入各类 IM。
 
-```bash
-openclaw agents list
-openclaw agents list --json
-openclaw agents list --bindings
-```
+| 资源 | 地址 | 覆盖平台 |
+|------|------|---------|
+| ⭐ 飞书集成指南 | <https://www.toutiao.com/group/7614370801759912486> | 飞书官方插件完整指南 |
+| 飞书部署教程 | <https://blog.csdn.net/m0_55049655/article/details/158623550> | CSDN 企业级飞书部署完整教程 |
+| 微信 / Telegram / Discord | <https://www.toutiao.com/group/7610316711539950132> | 多平台消息通道配置 |
+| Slack / Signal / iMessage | <https://www.toutiao.com/group/7614458834022613544> | 企业 IM 集成方案 |
 
-### 添加 Agent
-
-```bash
-# 交互式添加
-openclaw agents add
-
-# 指定名称添加
-openclaw agents add [name]
-
-# 非交互式添加
-openclaw agents add my-agent \
-  --workspace ~/.openclaw/workspace-my-agent \
-  --model anthropic/claude-sonnet-4-5 \
-  --bind whatsapp:personal \
-  --non-interactive
-```
-
-### 绑定管理
-
-```bash
-# 查看绑定
-openclaw agents bindings
-openclaw agents bindings --agent <id>
-
-# 添加绑定
-openclaw agents bind --agent <id> --bind <channel[:accountId]>
-
-# 移除绑定
-openclaw agents unbind --agent <id> --bind <channel[:accountId]>
-openclaw agents unbind --agent <id> --all
-```
-
-### 删除 Agent
-
-```bash
-openclaw agents delete <id>
-openclaw agents delete <id> --force
-```
-
-### 运行 Agent
-
-```bash
-# 单次对话
-openclaw agent --message "Hello" --to <dest>
-
-# 指定会话
-openclaw agent --message "Hello" --session-id <id>
-
-# 指定思考级别
-openclaw agent --message "Hello" --thinking high
-
-# 本地模式（不通过网关）
-openclaw agent --message "Hello" --local
-
-# 指定渠道回复
-openclaw agent --message "Hello" --channel whatsapp --deliver
-```
+> 详见[第四章 Chat Provider 配置](/cn/adopt/chapter4/)。
 
 ---
 
-## 技能管理
+## 五、技能开发与 Agent 模板
 
-### 列出技能
+> 技能（Skill）是 OpenClaw 的核心扩展机制。以下资源覆盖从使用现成技能到自主开发的完整路径。
 
-```bash
-openclaw skills list
-openclaw skills list --eligible    # 仅显示就绪技能
-openclaw skills list --json
-openclaw skills list -v            # 显示缺失需求详情
-```
+### 5.1 技能推荐与安装
 
-### 查看技能详情
+| 资源 | 地址 | 说明 |
+|------|------|------|
+| ⭐ Awesome OpenClaw Skills | <https://github.com/VoltAgent/awesome-openclaw-skills> | 5,490+ Skills 集合，已过滤 6,940 个垃圾插件 |
+| 2026 必装 Skills 推荐 | <https://www.toutiao.com/group/7611601860910236179> | 4 个核心技能安装与配置 |
+| 插件安装指南 | <https://www.php.cn/faq/2161325.html> | CLI 扩展功能添加步骤说明 |
 
-```bash
-openclaw skills info <name>
-```
+### 5.2 技能开发教程
 
-### 检查技能状态
+| 资源 | 地址 | 说明 |
+|------|------|------|
+| ⭐ Skills 配置手把手教程 | <https://www.toutiao.com/group/7612296579612983846> | 专业化工作流与工具集成 |
+| 前端开发者技能库搭建 | <https://www.toutiao.com/group/7614486886799426088> | 从入门到进阶实战 |
 
-```bash
-openclaw skills check
-```
+> 详见[附录 D：技能开发模板](/cn/appendix/appendix-d)。
 
-> 提示：使用 `npx clawhub` 搜索、安装和同步技能。
+### 5.3 Agent 模板与快速启动
 
----
-
-## 插件管理
-
-### 列出插件
-
-```bash
-openclaw plugins list
-openclaw plugins list --json
-```
-
-### 查看插件详情
-
-```bash
-openclaw plugins info <id>
-```
-
-### 安装插件
-
-```bash
-openclaw plugins install <path|.tgz|npm-spec>
-```
-
-### 启用/禁用插件
-
-```bash
-openclaw plugins enable <id>
-openclaw plugins disable <id>
-```
-
-### 插件诊断
-
-```bash
-openclaw plugins doctor
-```
+| 资源 | 地址 | 说明 |
+|------|------|------|
+| ⭐ Awesome OpenClaw Agents | <https://github.com/mergisi/awesome-openclaw-agents> | 100 个生产就绪 AI Agent 模板，18 个分类 |
+| CrewClaw | <https://crewclaw.com> | 60 秒部署任意 Agent，无需 Docker 和终端 |
+| Agent Templates | <https://github.com/mergisi/awesome-openclaw-agents/tree/main/agents> | 即拿即用的 SOUL.md 配置文件 |
+| Quickstart Guide | <https://github.com/mergisi/awesome-openclaw-agents/tree/main/quickstart> | 5 分钟零配置启动 Agent |
 
 ---
 
-## 记忆管理
+## 六、进阶学习
 
-### 查看记忆状态
+> 理解底层原理，才能在复杂场景中游刃有余。以下资源帮你从"会用"进阶到"精通"。
 
-```bash
-openclaw memory status
-```
+### 6.1 架构与原理
 
-### 索引记忆
+| 资源 | 地址 | 说明 |
+|------|------|------|
+| ⭐ 完整架构全解 | <https://www.toutiao.com/group/7610063314768446006> | AI 私人助理工作流程详解 |
+| OpenClaw 架构解析 | <https://www.toutiao.com/group/7602243573023425060> | 智能体执行、工具调用、浏览器操作底层逻辑 |
+| 意图与对话管理 | <https://www.toutiao.com/group/7610070344208073259> | NLP 识别与槽位填充实战 |
+| 分布式 AI 代理 | <https://www.toutiao.com/group/7614498988393333294> | 跨设备联动与多 Agent 协作 |
 
-```bash
-openclaw memory index
-```
+### 6.2 记忆系统与知识库
 
-### 搜索记忆
+| 资源 | 地址 | 说明 |
+|------|------|------|
+| ⭐ 记忆系统深度拆解 | <https://www.toutiao.com/group/7603715229905666569> | 长期 / 精炼记忆工作原理 |
+| 记忆系统架构解析 | <https://www.toutiao.com/group/7606549081040667188> | Markdown 到混合检索实现 |
+| Mem0 集成方案 | <https://www.toutiao.com/group/7613455137884946959> | 省 Token 的智能记忆管理 |
+| 知识库构建 | <https://www.toutiao.com/group/7612927848772272667> | SOP 与知识库最佳实践 |
+| ⭐ Memory LanceDB Pro | <https://github.com/win4r/memory-lancedb-pro> | 增强型长期记忆插件，支持混合检索和跨编码器重排序 |
+| Agent Second Brain | <https://github.com/AgentSecondBrain/memU> | 完整的第二大脑系统，语音笔记 → Obsidian + Todoist |
+| Obsidian Vault RAG | <https://github.com/Obsidian68/vault-rag> | OpenClaw 连接 Obsidian 知识库，实时 Markdown 索引 |
 
-```bash
-openclaw memory search "<query>"
-openclaw memory search --query "<query>"
-```
+### 6.3 浏览器自动化
+
+| 资源 | 地址 | 说明 |
+|------|------|------|
+| ⭐ OpenClaw + Playwright | <https://www.toutiao.com/group/7614706712441487915> | 自然语言驱动浏览器自动化 |
+| 浏览器自动化技能 | <https://www.toutiao.com/group/7613585763871080969> | browser-automation 技能使用指南 |
+| Agent-Browser | <https://github.com/vercel-labs/agent-browser> | Vercel 开源 AI 代理浏览器工具 |
+| MCP Server 集成 | <https://blog.csdn.net/LYX_WIN/article/details/157993447> | Playwright MCP 浏览器自动化 |
+
+<details>
+<summary>WSLg 浏览器指纹绕过（仅供研究）</summary>
+
+| 资源 | 地址 | 说明 |
+|------|------|------|
+| WSLg + 指纹绕过 | <https://www.toutiao.com/group/7605101648096018978> | 动态伪装浏览器指纹反爬 |
+
+> **注意**：浏览器指纹绕过技术存在法律与道德风险，请仅用于合法的安全研究与测试目的。
+
+</details>
+
+### 6.4 自动化工作流
+
+| 资源 | 地址 | 说明 |
+|------|------|------|
+| ⭐ 自动化工作流实操 | <https://www.toutiao.com/group/7614476588058427946> | 从配置到 3 个核心场景实战 |
+| 自动化办公指南 | <https://www.toutiao.com/group/7614155545884328499> | 文件处理与团队协作场景 |
+| awesome-usecases 详解 | <https://blog.csdn.net/yangshangwei/article/details/158314655> | 30+ 真实可运行场景 |
+
+### 6.5 安全最佳实践
+
+| 资源 | 地址 | 说明 |
+|------|------|------|
+| ⭐ AWS 安全与功能增强实践 | <https://aws.amazon.com/cn/blogs/china/openclaw-security-and-feature-enhancement-practices/> | EC2 部署后的安全防护与功能增强工程实践（踩坑记录） |
+| 安全加固指南 | <https://github.com/rohitg00/awesome-openclaw> | 权限管理与风险防控 |
+
+> 详见[第十章 安全防护与威胁模型](/cn/adopt/chapter10/)。
+
+### 6.6 历史版本与演进
+
+| 资源 | 地址 | 说明 |
+|------|------|------|
+| Clawdbot → Moltbot → OpenClaw | <https://www.toutiao.com/group/7601730056133804571> | 历史版本部署实战汇总 |
+| 从新手到中级教程 | <https://www.toutiao.com/group/7613221725324444202> | 沙盒模式与工作空间探索 |
 
 ---
 
-## 设备管理
+## 七、生态工具与客户端
 
-### 列出设备
+> 除了官方界面，社区开发了丰富的第三方工具，涵盖可视化管理、移动端、可观测性等领域。
 
-```bash
-openclaw devices list
-openclaw devices list --json
+### 7.1 可视化管理面板
+
+| 工具 | 地址 | 说明 |
+|------|------|------|
+| ⭐ ClawPanel | <https://github.com/1186258278/ClawPanel> | OpenClaw 可视化管理面板，内置 AI 助手 |
+| Nerve | <https://github.com/Nerve/nerve> | 自托管 Web 驾驶舱，实时流式对话 |
+
+### 7.2 移动端与 Web 客户端
+
+| 工具 | 地址 | 说明 |
+|------|------|------|
+| ClawApp | <https://github.com/qingchencloud/ClawApp> | 手机端 H5 聊天客户端，支持 PWA |
+| MobileClaw | <https://github.com/mobileclaw/mobileclaw> | 移动优先 PWA 客户端 |
+| PinchChat | <https://github.com/pinchchat/pinchchat> | 开源 WebChat UI，ChatGPT 风格界面 |
+
+> 详见[第十一章 Web 界面与客户端](/cn/adopt/chapter11/)。
+
+### 7.3 可观测性与监控
+
+| 工具 | 地址 | 说明 |
+|------|------|------|
+| Manifest | <https://github.com/manifest/manifest> | 实时成本可观测性，28+ 模型支持 |
+| Opik OpenClaw | <https://github.com/Anil-matcha/opik-openclaw> | 链路级可观测性追踪 |
+
+---
+
+## 八、综合资源索引
+
+> 以下是涵盖多个领域的综合性资源汇总，适合全面了解 OpenClaw 生态。
+
+| 资源 | 地址 | 说明 |
+|------|------|------|
+| ⭐ Awesome OpenClaw | <https://github.com/SamurAIGPT/awesome-openclaw> | 最全面的资源汇总，100+ 项目链接 |
+| CoClaw 社区资源中心 | <https://coclaw.com> | 社区维护的 OpenClaw 资源枢纽，覆盖指南、排错、配置生成与专题文章（非官方） |
+| 用例集合 | <https://github.com/hesamsheikh/awesome-openclaw-usecases> | 社区应用案例，36 个真实场景验证 |
+| OpenClaw 生态 TOP6 工具 | <https://www.toutiao.com/group/7613671784054866473> | 部署、托管、监控一站式方案 |
+
+---
+
+## 推荐学习路径
+
+根据你的背景和目标，选择最适合的学习路径：
+
+### 路径一：完全新手（零编程经验）
+
+```
+第一步：阅读本教程导言，了解 OpenClaw 是什么
+  ↓
+第二步：按第一章安装 AutoClaw（一键安装，零配置）
+  ↓
+第三步：在 AutoClaw 中完成第一次对话
+  ↓
+第四步：按第四章接入一个聊天平台（推荐飞书）
+  ↓
+第五步：探索 ClawHub 安装感兴趣的技能
 ```
 
-### 批准设备
+### 路径二：想快速部署（有一定技术基础）
 
-```bash
-openclaw devices approve [requestId]
-openclaw devices approve --latest
+```
+第一步：按第二章手动安装 OpenClaw
+  ↓
+第二步：使用 OpenClaw 汉化发行版 或 HuggingClaw 快速跑起来
+  ↓
+第三步：按第五章配置国内模型提供商
+  ↓
+第四步：按需阅读场景章节（第三 ~ 十一章）
 ```
 
-### 拒绝设备
+### 路径三：Agent 开发者（想构建自定义 Agent）
 
-```bash
-openclaw devices reject <requestId>
+```
+第一步：研究 Awesome OpenClaw Agents 的 100 个模板
+  ↓
+第二步：学习附录 D 的技能开发模板
+  ↓
+第三步：阅读本教程第二部分「构建 Claw」
+  ↓
+第四步：深入 Memory LanceDB Pro 等记忆增强方案
 ```
 
-### 移除设备
+### 路径四：企业部署（生产环境）
 
-```bash
-openclaw devices remove <deviceId>
 ```
-
-### 清除设备
-
-```bash
-openclaw devices clear --yes
-openclaw devices clear --yes --pending
+第一步：阅读第十章安全防护与威胁模型
+  ↓
+第二步：参考附录 F 选择云服务部署方案
+  ↓
+第三步：按第八章配置 Gateway 运维与管理
+  ↓
+第四步：按第九章设置远程访问与网络
+  ↓
+第五步：部署可观测性工具（Manifest / Opik）
 ```
 
 ---
 
-## 配对管理
+## 写在最后
 
-### 列出配对请求
+学习 OpenClaw 最大的障碍不是技术难度，而是信息过载和缺乏方向。
 
-```bash
-openclaw pairing list
-openclaw pairing list [channel] --channel <channel> --account <id>
-```
+这份资源汇总的目标，是帮你在茫茫信息海洋中找到最有价值的资源，按照合理的顺序学习，避免走弯路。但请记住：**看再多教程，不如动手做一个真实的项目**。
 
-### 批准配对
+从最简单的开始：让 OpenClaw 每天早上给你发送天气预报。成功后，再尝试更复杂的场景。每一个小成功，都会让你更接近"AI 助手"的终极目标。
 
-```bash
-openclaw pairing approve <channel> <code>
-openclaw pairing approve --channel <channel> <code> --notify
-```
+**四条建议**：
 
----
+- 不要追求完美，先让它跑起来
+- 不要孤军奋战，遇到问题就问社区
+- 不要只学不用，每学一个功能就用到实际工作中
+- 不要害怕出错，OpenClaw 最坏的结果就是重装
 
-## 渠道管理
-
-### 列出渠道
-
-```bash
-openclaw channels list
-openclaw channels list --json
-```
-
-### 查看渠道状态
-
-```bash
-openclaw channels status
-openclaw channels status --probe
-```
-
-### 查看渠道日志
-
-```bash
-openclaw channels logs
-openclaw channels logs --channel <name> --limit 200
-```
-
-### 添加渠道
-
-```bash
-# 交互式添加
-openclaw channels add
-
-# 非交互式添加 Telegram
-openclaw channels add \
-  --channel telegram \
-  --account alerts \
-  --name "Alerts Bot" \
-  --token $TELEGRAM_BOT_TOKEN
-
-# 非交互式添加 Discord
-openclaw channels add \
-  --channel discord \
-  --account work \
-  --name "Work Bot" \
-  --token $DISCORD_BOT_TOKEN
-```
-
-### 移除渠道
-
-```bash
-openclaw channels remove --channel <channel> --account <id>
-openclaw channels remove --channel <channel> --account <id> --delete
-```
-
-### 登录/登出
-
-```bash
-# WhatsApp Web 登录
-openclaw channels login
-openclaw channels login --channel whatsapp --account <id> --verbose
-
-# 登出
-openclaw channels logout
-openclaw channels logout --channel <channel> --account <id>
-```
-
----
-
-## 消息发送
-
-### 发送消息
-
-```bash
-openclaw message send --target +15555550123 --message "Hello"
-```
-
-### 发送投票
-
-```bash
-openclaw message poll \
-  --channel discord \
-  --target channel:123 \
-  --poll-question "Snack?" \
-  --poll-option Pizza \
-  --poll-option Sushi
-```
-
-### 其他消息操作
-
-```bash
-openclaw message react
-openclaw message reactions
-openclaw message read
-openclaw message edit
-openclaw message delete
-openclaw message pin
-openclaw message unpin
-```
-
----
-
-## 模型管理
-
-### 列出模型
-
-```bash
-openclaw models list
-openclaw models status
-```
-
-### 设置模型
-
-```bash
-openclaw models set <model>
-openclaw models set-image <model>
-```
-
-### 模型别名
-
-```bash
-openclaw models aliases list
-openclaw models aliases add <alias> <model>
-openclaw models aliases remove <alias>
-```
-
-### 模型回退
-
-```bash
-openclaw models fallbacks list
-openclaw models fallbacks add <model>
-openclaw models fallbacks remove <model>
-openclaw models fallbacks clear
-```
-
-### 模型认证
-
-```bash
-openclaw models auth add
-openclaw models auth setup-token
-openclaw models auth paste-token
-openclaw models auth order get|set|clear
-```
-
----
-
-## 配置操作
-
-### 获取配置
-
-```bash
-openclaw config get <path>
-openclaw config get agents.defaults.workspace
-```
-
-### 设置配置
-
-```bash
-openclaw config set <path> <value>
-openclaw config set agents.defaults.heartbeat.every "2h"
-```
-
-### 删除配置
-
-```bash
-openclaw config unset <path>
-```
-
-### 配置文件路径
-
-```bash
-openclaw config file
-```
-
-### 验证配置
-
-```bash
-openclaw config validate
-openclaw config validate --json
-```
-
----
-
-## 系统管理
-
-### 系统事件
-
-```bash
-openclaw system event
-```
-
-### 心跳管理
-
-```bash
-openclaw system heartbeat last
-openclaw system heartbeat enable
-openclaw system heartbeat disable
-```
-
-### 在线状态
-
-```bash
-openclaw system presence
-```
-
----
-
-## 安全管理
-
-### 安全审计
-
-```bash
-openclaw security audit
-openclaw security audit --deep
-openclaw security audit --fix
-```
-
-### 密钥管理
-
-```bash
-openclaw secrets reload
-openclaw secrets audit
-openclaw secrets configure
-openclaw secrets apply --from <plan.json>
-```
-
----
-
-## 会话管理
-
-### 列出会话
-
-```bash
-openclaw sessions list
-openclaw sessions --json
-openclaw sessions --verbose
-```
-
-### 查看状态
-
-```bash
-openclaw status
-openclaw status --json
-openclaw status --deep
-openclaw status --usage
-```
-
----
-
-## 浏览器管理
-
-```bash
-openclaw browser status
-openclaw browser start
-openclaw browser stop
-openclaw browser reset-profile
-openclaw browser tabs
-openclaw browser open <url>
-openclaw browser screenshot
-openclaw browser navigate <url>
-```
-
----
-
-## 定时任务
-
-```bash
-openclaw cron status
-openclaw cron list
-openclaw cron add
-openclaw cron edit <id>
-openclaw cron rm <id>
-openclaw cron enable <id>
-openclaw cron disable <id>
-openclaw cron runs
-openclaw cron run <id>
-```
-
----
-
-## 快捷命令别名
-
-为提高效率，你可以设置常用命令的别名：
-
-```bash
-# 添加到 ~/.bashrc 或 ~/.zshrc
-alias oc='openclaw'
-alias ocg='openclaw gateway'
-alias ocs='openclaw skills'
-alias oca='openclaw agents'
-alias ocd='openclaw dashboard'
-alias ocdr='openclaw doctor'
-alias occh='openclaw channels'
-
-# 快速启动别名
-alias ocstart='openclaw gateway start && openclaw dashboard'
-alias ocstop='openclaw gateway stop'
-alias ocrestart='openclaw gateway restart'
-```
-
----
-
-## 故障排查速查
-
-| 问题 | 诊断命令 | 解决方案 |
-|------|----------|----------|
-| 网关无法启动 | `openclaw doctor` | 检查端口占用，查看日志 |
-| Dashboard 无法访问 | `openclaw gateway status` | 确认网关运行，检查防火墙 |
-| 渠道连接失败 | `openclaw channels status --probe` | 检查渠道配置和认证 |
-| 模型连接失败 | `openclaw models status` | 验证 API 密钥和模型配置 |
-| 设备配对失败 | `openclaw devices list` | 批准待处理设备 |
-| 配置验证失败 | `openclaw config validate` | 根据错误提示修复配置 |
-
----
-
-## 更多帮助
-
-```bash
-# 查看全局帮助
-openclaw --help
-
-# 查看子命令帮助
-openclaw <command> --help
-
-# 查看具体命令帮助
-openclaw gateway --help
-openclaw channels add --help
-```
-
----
-
-**提示**：本速查表基于 OpenClaw 官方文档整理，建议访问 [docs.openclaw.ai](https://docs.openclaw.ai) 获取最新信息。
+祝你学习愉快！

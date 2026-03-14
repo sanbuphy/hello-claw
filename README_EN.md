@@ -2,7 +2,9 @@
 
 <img src="asset/logo.png" alt="Hello Claw Logo" width="400">
 
-# Hello Claw: Learn OpenClaw from 0 to 1
+<p align="center"><em>In an unremarkable repository, a lobster was born.<br>Pick one and send it to school; or write your own undefined lobster.<br>Its dreams have been big from day one.</em></p>
+
+# Hello Claw 👋
 
 <p align="center"><em>Master OpenClaw from scratch: Adopt your AI lobster assistant or build your own agent</em></p>
 
@@ -29,6 +31,10 @@
 > [!WARNING]
 > 🧪 Beta Notice: Main content completed, details being refined. Issues and suggestions welcome!
 
+## Read Online
+
+https://datawhalechina.github.io/hello-claw
+
 ## Introduction
 
 This is a comprehensive tutorial for OpenClaw, helping you master this powerful command-line AI assistant system from scratch. Whether you want to quickly adopt OpenClaw to boost productivity or dive deep into its principles to build your own version, this tutorial provides a clear learning path.
@@ -54,10 +60,6 @@ This is a comprehensive tutorial for OpenClaw, helping you master this powerful 
 
 - **[2026-03-06]** ✅ Completed Ch.1-3: Installation, mobile access (Telegram/Feishu/QQ), automation basics
 - **[2026-03-04]** 🦞 Project launched with two core modules: "Adopt Claw" and "Build Claw"
-
-## Read Online
-
-https://datawhalechina.github.io/hello-claw
 
 ## 📖 Table of Contents
 
