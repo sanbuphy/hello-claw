@@ -437,9 +437,9 @@ psql -d ironclaw -c 'CREATE EXTENSION IF NOT EXISTS vector;'
 
 </details>
 
-### 7.2 轻量/极简方案
+### 7.2 轻量/极简/专项方案
 
-这些项目追求最小化设计，适合学习、定制或资源受限场景。
+以下项目各有侧重——极简设计、安全定制、多智能体协作或本地模型支持，适合学习、定制或特定场景。
 
 | 项目 | 语言 | 定位 | GitHub |
 |------|------|------|--------|
@@ -448,6 +448,7 @@ psql -d ironclaw -c 'CREATE EXTENSION IF NOT EXISTS vector;'
 | **TinyClaw** | Shell/TS | 多智能体多团队，链式执行 + 扇出，隔离工作区 | [TinyAGI/tinyclaw](https://github.com/TinyAGI/tinyclaw) |
 | **AlphaClaw** | — | 社区衍生方案 | [chrysb/alphaclaw](https://github.com/chrysb/alphaclaw) |
 | **CoPaw** | Python | 阿里通义 AgentScope 团队出品，钉钉原生集成，长期记忆（ReMe 框架），支持本地模型 | [agentscope-ai/CoPaw](https://github.com/agentscope-ai/CoPaw) |
+| **HiClaw** | Docker | Higress 社区多智能体协作平台，Manager-Worker 架构，人在回路中，内置 Matrix 服务器 | [higress-group/hiclaw](https://github.com/higress-group/hiclaw) |
 | **GenericAgent** | Python | 复旦 A3 实验室极简自主 Agent，自组织/自学习/自进化，可自动安装/卸载 OpenClaw 等复杂系统 | [lsdefine/pc-agent-loop](https://github.com/lsdefine/pc-agent-loop) |
 
 <details>
@@ -457,44 +458,12 @@ psql -d ironclaw -c 'CREATE EXTENSION IF NOT EXISTS vector;'
 - **ZeroClaw**：追求极致性能和可定制性？ZeroClaw 用 Rust 的 Trait 系统实现完全可替换的组件架构，编译为零运行时开销的原生二进制。
 - **TinyClaw**：需要多个 Agent 团队协作？TinyClaw 支持链式执行和扇出模式，每个 Agent 在隔离工作区中运行，适合复杂工作流编排。
 - **CoPaw**：阿里通义团队基于 AgentScope 框架打造的开源 Agent 工作台（[官网](https://copaw.bot/) / [GitHub](https://github.com/agentscope-ai/CoPaw)），Apache 2.0 开源。钉钉原生集成，也支持飞书/QQ/Discord/iMessage 等渠道。内置 ReMe（Remember Me, Refine Me）长期记忆框架、Tool Guard 安全层、主动心跳定时任务。支持 Ollama/llama.cpp/MLX 本地模型。适合**钉钉生态用户**和想要国产开源替代方案的开发者。
+- **HiClaw**：Higress 社区推出的多智能体协作平台（[官网](https://hiclaw.org/) / [GitHub](https://github.com/higress-group/hiclaw)）。Manager-Worker 架构：一个管理者智能体协调多个工作者并行处理复杂任务，基于 Matrix 开放协议通信，人在回路中（实时观察/介入/纠正）。工作者只使用消费级 Token，真实凭证存储在 Higress AI 网关中。支持 OpenClaw、NanoClaw、ZeroClaw 等多种运行时。前置条件 Docker Desktop（macOS/Windows）或 Docker Engine（Linux）。适合**需要多智能体团队协作**的场景。
 - **GenericAgent**：复旦大学 A3 实验室（与深圳夸夸菁领科技合作）研发的极简自主 Agent 框架，追求自组织、自学习、自进化。不依赖预定义工具链，而是通过理解系统环境自主决策——例如它能在极少提示下自动完成 OpenClaw 的安装和彻底卸载（含进程清理、配置残留、依赖回收）。提供[一键安装版](https://github.com/lsdefine/pc-agent-loop/release)，支持 Windows/macOS/Linux。
 
 </details>
 
-### 7.3 多智能体平台：HiClaw
-
-[HiClaw](https://hiclaw.org/)（[GitHub](https://github.com/higress-group/hiclaw)）由 Higress 社区推出，是基于 OpenClaw 的多智能体协作平台。
-
-**核心理念：**
-
-- **Manager-Worker 架构**：一个管理者智能体协调多个工作者智能体，并行处理复杂任务
-- **人在回路中**：在共享聊天室里实时观察、介入、纠正智能体行为
-- **企业级安全**：工作者只使用消费级 Token，真实凭证存储在 Higress AI 网关中
-- **内置 Matrix 服务器**：基于开放协议通信，无需企业 IM 审批
-- **灵活组合**：支持 OpenClaw、NanoClaw、ZeroClaw 等多种智能体运行时
-
-<details>
-<summary>HiClaw 安装步骤</summary>
-
-前置条件：Docker Desktop（macOS/Windows）或 Docker Engine（Linux）。
-
-::: code-group
-
-```bash [macOS / Linux]
-bash <(curl -sSL https://higress.ai/hiclaw/install.sh)
-```
-
-```powershell [Windows (PowerShell 7+)]
-Set-ExecutionPolicy Bypass -Scope Process -Force; Invoke-Expression ((New-Object System.Net.WebClient).DownloadString('https://higress.ai/hiclaw/install.ps1'))
-```
-
-:::
-
-> HiClaw 适合**需要多智能体协作**的场景（如团队级任务分解、复杂工作流编排）。如果你只需要一个 AI 助手，OpenClaw 或 AutoClaw 就够了。
-
-</details>
-
-### 7.4 开源方案综合对比
+### 7.3 开源方案综合对比
 
 | 维度 | OpenClaw | IronClaw | CoPaw | NanoClaw | ZeroClaw | HiClaw | GenericAgent |
 |------|----------|----------|-------|----------|----------|--------|-------------|

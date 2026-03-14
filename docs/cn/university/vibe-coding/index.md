@@ -39,48 +39,47 @@
 ```mermaid
 flowchart TB
 
-A["飞书对话"]
+A["👤 飞书发需求
+'把 SE-Arena 的榜单添加到 README'"]
 
-subgraph OC["OpenClaw Server"]
-B["编排层"]
+subgraph OC["OpenClaw（消息编排）"]
+B["接收消息 → 调用 claude-code 技能"]
 end
 
-subgraph SK["技能层"]
-C["claude-code 技能
-桥接 Claude Code"]
+subgraph CC["Claude Code（编码重活）"]
+direction TB
+D1["1. 理解仓库结构与上下文"]
+D2["2. 创建分支 openclaw/fix-xxx"]
+D3["3. 修改代码"]
+D4["4. 运行测试"]
+D5["5. 提交 + 推送"]
+D6["6. 创建 PR"]
+D1 --> D2 --> D3 --> D4 --> D5 --> D6
 end
 
-subgraph CC["编码引擎"]
-D["Claude Code"]
-end
+G["GitHub Copilot 自动审查
+（可选）"]
 
-subgraph WS["开发环境"]
-E["本地 Repo Workspace"]
-end
+H["📩 飞书通知
+PR 链接 + 修改摘要 + diff 预览"]
 
-subgraph GH["代码协作"]
-F["GitHub PR"]
-G["GitHub Copilot
-自动审查"]
-end
+I{"👤 用户决策"}
 
-H["OpenClaw 通知
-PR 链接 + 修改摘要"]
+J["✅ 合并 PR
+清理分支"]
 
-I["用户决策
-修改 / 合并"]
+K["🔄 回复修改意见
+触发新一轮"]
 
-A <--> B
-B --> C
-C --> D
-D --> E
-E --> F
-F --> G
-
-F --> H
-H --> A
-
-A --> I
+A --> B
+B --> D1
+D6 --> G
+D6 --> H
+G --> H
+H --> I
+I -- "合并" --> J
+I -- "按建议修改" --> K
+K --> B
 ```
 
 <details>
@@ -259,25 +258,15 @@ clawhub install github                # 可选：PR 状态查询 + Cron 轮询
 ## 场景处理 —— 代码与 PR 类需求
 
 当用户提出涉及代码修改、提交、PR 的任务时：
-1. 先确认目标仓库（从消息中提取，或询问用户）
-2. 检查仓库权限：`gh api repos/{owner}/{repo}` 查看是否有 push 权限
-3. **有权限** → `gh repo clone` 到工作区，创建新分支直接操作
-4. **无权限** → `gh repo fork` → clone fork 到工作区，完成后向上游提 PR
-5. 创建分支时默认使用 `openclaw/` 前缀
-6. 执行任务：修改代码 → 运行测试 → 提交 → 推送 → 创建 PR
-7. 创建 PR 后默认请求 `@copilot` 审查
-8. 完成后汇报：PR 链接 + 修改的文件列表 + 代码修改摘要
-9. 用户确认合并时：`gh pr merge <number> --squash --delete-branch` 合并 PR 并清理远程分支
+1. 确认目标仓库（从消息中提取，或询问用户）
+2. 调用 Claude Code 执行任务（权限检查、clone/fork、分支创建、代码修改、测试、提交推送、创建 PR 等细节由 Claude Code 自动处理）
+3. 创建 PR 后默认请求 `@copilot` 审查
+4. 完成后汇报：PR 链接 + 修改的文件列表 + 代码修改摘要
+5. 用户确认合并时：执行 squash merge 并清理远程分支
 
-### 异常处理优先级
+### 异常处理
 
-遇到推送或 PR 失败时，**先自行诊断，能修则修，修不了再报错**：
-
-1. **提交/推送冲突** → 尝试 `git pull --rebase` 或 `git reset HEAD~1` 回退后重新提交
-2. **CI 检查失败** → 阅读失败日志，修复代码问题后 `git push -f` 更新 PR
-3. **分支保护规则拦截** → 检查是否需要通过 PR 而非直推，调整操作路径
-4. **认证/权限错误** → 先自查：Token 是否过期？scope 是否包含 `repo`？SSO 授权是否完成？
-5. **以上都解决不了** → 向用户报告具体错误信息和已尝试的修复步骤，请求指示
+遇到失败时，**先自行诊断修复，修不了再报错**。向用户报告时需包含：具体错误信息 + 已尝试的修复步骤。
 ```
 
 > **为什么需要 IDENTITY.md？** `claude-code` 技能提供了 Claude Code 的调用接口，但 OpenClaw 还需要知道"什么时候调用"和"结果怎么处理"。IDENTITY.md 告诉 OpenClaw 的编排 Agent 这些决策逻辑。
@@ -700,7 +689,7 @@ Vibe Coding 的核心价值是**把开发者从繁琐的工具操作中解放出
 
 ---
 
-**下一步**：[技能实战：首页](/cn/university/)
+**下一步**：[🧪 龙虾大学：语音调研实战](/cn/university/voice-research)
 
 ---
 
