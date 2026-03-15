@@ -192,9 +192,18 @@ clawhub install github                # 可选：PR 状态查询 + Cron 轮询
 
 6. **配置 GitHub 认证**（PAT 方式，推荐新手）
 
-   前往 [GitHub Settings → Fine-grained tokens](https://github.com/settings/tokens?type=beta) → Generate new token，配置权限：
-   - **Repository access**：选择目标仓库（建议 "Only select repositories"）
-   - **Permissions**：Contents (Read and write)、Pull requests (Read and write)、Issues (Read and write)、Metadata (Read-only)
+   打开 GitHub → 点击右上角**头像** → **Settings** → 左侧栏最下方 **Developer settings** → 左侧栏最下方 **Personal access tokens** → 选择 **Fine-grained tokens**（推荐）或 Tokens (classic) → 点击 **Generate new token**。如果开启了两步验证，此时需要完成验证。
+
+   给 Token 取一个有意义的名称（如 `openclaw-vibe-coding`），然后往下滚动配置以下选项：
+   - **Repository access**（仓库访问范围）：选择 "Only select repositories"，然后在下拉菜单中勾选你要操作的目标仓库
+   - **Permissions**（权限）：展开 "Repository permissions"，找到并设置以下四项：
+     - Contents → **Read and write**（读写仓库文件）
+     - Pull requests → **Read and write**（创建和管理 PR）
+     - Issues → **Read and write**（读写 Issue）
+     - Metadata → **Read-only**（只读元数据，默认已勾选）
+   - 其余权限保持默认（No access）即可。设置完成后，滚动到页面底部点击 **Generate token**，复制生成的 Token（**只显示一次，务必立即保存**）
+
+   ![GitHub Token 创建页面](./images/github-token.png)
 
    ```bash
    export GITHUB_TOKEN="github_pat_xxxxx"

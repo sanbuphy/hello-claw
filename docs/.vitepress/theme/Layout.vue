@@ -596,9 +596,6 @@ clawhub install github</pre>
         <h2 class="!text-3xl md:!text-4xl !font-extrabold !leading-tight flex items-center gap-2 mb-8 mt-2">
           <span class="text-[#ff4d4d]">&gt;</span> 3) 龙虾大学文章合集
         </h2>
-        <p class="text-gray-300 !leading-relaxed !m-0">
-          先放两个假想场景，后续可以按你的真实案例持续扩充。
-        </p>
         <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mt-6">
           <a
             v-for="article in lobsterUniversityCollections"
