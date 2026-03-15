@@ -202,7 +202,6 @@ export default defineConfig({
                 { text: '多智能体协作（HiClaw）', link: '/cn/university/multi-claw-hiclaw/' },
                 { text: '安全防护清单', link: '/cn/university/security/' },
                 { text: 'Vibe Coding 实战', link: '/cn/university/vibe-coding/' },
-                { text: '语音调研实战', link: '/cn/university/voice-research/' }
               ]
             }
           ]
